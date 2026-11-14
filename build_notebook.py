@@ -32,6 +32,11 @@ md(r"""# 🛠️ Fine-Tuning LLMs — Session 2 (V2): A Customer-Support Triage 
 
 *Hands-on lab · Bala Krishna Ragala*
 
+<a href="https://colab.research.google.com/github/baluragala/finetune-llms-qlora-lab/blob/main/Fine_Tuning_LLMs_S2_Python_Bala_Krishna_Ragala_V2.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+&nbsp; [▶ Slides](https://baluragala.github.io/finetune-llms-qlora-lab/slides/) · [📂 GitHub repo](https://github.com/baluragala/finetune-llms-qlora-lab) · [📘 Companion notes](https://github.com/baluragala/finetune-llms-qlora-lab/blob/main/notes.md)
+
+> **Running this in Colab?** Choose **File ▸ Save a copy in Drive** first, so your changes and outputs are kept.
+
 | | |
 |---|---|
 | **Model** | `Qwen/Qwen2.5-0.5B-Instruct` (small, open, instruction-tuned) |
