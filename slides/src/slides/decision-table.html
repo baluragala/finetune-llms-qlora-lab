@@ -1,0 +1,15 @@
+<section id="decision-table">
+<div class="head">
+<p class="eyebrow">3 · Decision framework</p>
+<h2>From cheapest to most permanent</h2>
+</div>
+<table class="tbl">
+<tr class="hd"><th style="width:18%">Tool</th><th style="width:22%">Changes</th><th style="width:32%">Best for</th><th style="width:28%">Weak at</th></tr>
+<tr><td>Prompting</td><td>The instruction, now</td><td>Steering, formatting, prototyping</td><td>Reliability at scale; skill gaps</td></tr>
+<tr><td>RAG</td><td>Knowledge at answer time</td><td>Fresh or private facts, citations</td><td>Changing style or skill</td></tr>
+<tr class="band"><td>Fine-tuning</td><td>The weights (instincts)</td><td>Consistent style, format, narrow skill, cheaper inference</td><td>Fresh or changing facts</td></tr>
+<tr><td>Combination</td><td>Several at once</td><td>Most serious production systems</td><td>More moving parts</td></tr>
+</table>
+<p class="rule">Read the table top to bottom: move down a row only when the row above genuinely can’t solve it.</p>
+<aside>Walk the four tools from cheapest to most permanent. Most “we need to fine-tune” requests die at the first row once someone writes a better prompt.</aside>
+</section>

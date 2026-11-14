@@ -1,0 +1,15 @@
+<section id="lab-problem">
+<div class="head">
+<p class="eyebrow">Lab · Problem statement</p>
+<h2>Triage every ticket, the same way, in a format software can use</h2>
+</div>
+<p class="rule">Given the raw text of a support ticket, produce a category, a priority and a draft reply, as exact JSON that the ticketing system can consume with no human reformatting.</p>
+<table class="tbl-s">
+<tr class="hd"><th style="width:50%">What we need</th><th style="width:50%">What a general LLM does</th></tr>
+<tr><td>One of <i>our</i> 6 categories, spelled exactly (Billing, Technical Issue, …)</td><td>Invents labels: “Billing and Service Issues”</td></tr>
+<tr><td>One of <i>our</i> 4 priorities (Low → Urgent), by <i>our</i> policy</td><td>Guesses, with no idea what Urgent means here</td></tr>
+<tr><td>Only JSON, exactly 3 keys, every single time</td><td>Adds chatty preambles, code fences, extra keys</td></tr>
+<tr><td>Cheap and private enough to run on every ticket</td><td>Big API models cost per call and send customer data off-site</td></tr>
+</table>
+<aside>Today a human triages by hand: slow, inconsistent between agents, and urgent tickets get buried. Downstream software can't use output that is usually right; it needs output that is reliably right in the exact format. This is a behaviour gap, so by our decision questions, it is a fine-tuning problem.</aside>
+</section>

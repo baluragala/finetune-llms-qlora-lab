@@ -1,0 +1,13 @@
+<section id="pref">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · D</p>
+<h2>Preference tuning: RLHF and DPO</h2>
+</div>
+<p class="lead">Of two correct answers, one is more helpful, safer or on-tone. Preference tuning teaches that <b>taste</b>: most of what we call alignment.</p>
+<div class="grid2">
+<div class="card" style="--i:0"><p class="tag o">RLHF</p><h3>Train a judge, then optimize</h3><p class="ct-s">People rank pairs of answers → train a <b>reward model</b> → use reinforcement learning to make the LLM score high. Powerful, multi-stage, somewhat unstable.</p></div>
+<div class="card hot" style="--i:1"><p class="tag b">DPO</p><h3>Learn straight from the pairs</h3><p class="ct-s">The same “A is better than B” data, but optimize the model <b>directly</b>: no reward model, no RL. Simpler, more stable, very popular.</p></div>
+</div>
+<p class="analogy">Refine the palate: the head chef picks the better of two good plates, thousands of times.</p>
+<aside>Between two good answers, which is better? Preference tuning teaches taste and alignment. RLHF is reward model plus RL: powerful, fiddly. DPO learns directly from preference pairs: simpler and now the common choice.</aside>
+</section>

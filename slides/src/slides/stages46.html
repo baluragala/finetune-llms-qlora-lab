@@ -1,0 +1,13 @@
+<section id="stages46">
+<div class="head">
+<p class="eyebrow">4 · Stages 4–6</p>
+<h2>Approach, train, evaluate</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="step">4</p><h3>Choose the approach</h3><p class="ct-s">Options differ in cost by <b>orders of magnitude</b>. Most teams should start with LoRA or QLoRA.</p></div>
+<div class="card" style="--i:1"><p class="step">5</p><h3>Training</h3><p class="ct-s">The dials are learning rate and epochs. Train conservatively. <b>Validation loss rising while training loss falls means memorization: stop.</b></p></div>
+<div class="card" style="--i:2"><p class="step">6</p><h3>Evaluation</h3><p class="ct-s">A held-out set and a real <b>baseline</b> (the prompted base model). Is it better than the cheap option, by enough to justify the cost? Plus a regression check.</p></div>
+</div>
+<p class="analogy">In the lab: QLoRA on a T4 · loss 2.14 → 0.12, eval loss falling every epoch · baseline measured before training, then the same test re-run after.</p>
+<aside>Start with LoRA or QLoRA. Train conservatively. The overfitting signal is validation loss rising while training loss keeps falling. Evaluation always needs a baseline, and the cheapest honest baseline is the prompted base model.</aside>
+</section>

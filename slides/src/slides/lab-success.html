@@ -1,0 +1,17 @@
+<section id="lab-success" class="alt">
+<div class="head">
+<p class="eyebrow">Lab · Success criteria</p>
+<h2>Decide what “worked” means before training</h2>
+</div>
+<table class="tbl">
+<tr class="hd"><th style="width:22%">Metric</th><th style="width:40%">Question it answers</th><th style="width:20%">Before (typical)</th><th style="width:18%">Target</th></tr>
+<tr><td>valid_json</td><td>Can a program parse the output at all?</td><td>94–97%</td><td>100%</td></tr>
+<tr><td>category_acc</td><td>Routed to the right team? (exact match)</td><td>23–31%</td><td>≥ 90%</td></tr>
+<tr><td>priority_acc</td><td>Right urgency? (exact match)</td><td>37–40%</td><td>≥ 85%</td></tr>
+</table>
+<div class="grid2">
+<p class="analogy">Same model, same 35 held-out tickets, same code, before and after. The only thing that changes is the fine-tuning.</p>
+<p class="rule">Exact match is strict on purpose: “Billing and Service Issues” is wrong, because the ticketing system only knows “Billing”.</p>
+</div>
+<aside>Stage 1 of the lifecycle, done properly: the metric and the bar are written before any data or training. The before numbers are the range across two verified runs (local and Colab T4). LoRA starts at zero, so evaluating before training is evaluating the base model, for free.</aside>
+</section>

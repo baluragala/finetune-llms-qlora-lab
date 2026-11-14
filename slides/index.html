@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fine-Tuning LLMs V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500..700&family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* ---------- presenter shell ---------- */
+html, body { margin: 0; height: 100%; background: #0E1626; overflow: hidden; }
+#viewport { position: fixed; inset: 0 0 56px 0; display: flex; align-items: center; justify-content: center; }
+#canvas { width: 1920px; height: 1080px; position: relative; transform-origin: center center; flex: none;
+           box-shadow: 0 10px 60px rgba(0,0,0,.45); }
+#canvas > section { position: absolute; inset: 0; box-sizing: border-box; overflow: hidden; display: none !important; }
+#canvas > section.active { display: flex !important; }
+#canvas > section aside { display: none; }
+#canvas h1, #canvas h2, #canvas h3, #canvas p, #canvas ul, #canvas ol, #canvas table { margin: 0; }
+#canvas table { border-collapse: collapse; }
+#canvas th, #canvas td { padding: .35em .6em; text-align: left; border-bottom: 1px solid rgba(20,33,61,.15); }
+#canvas ol, #canvas ul { padding-left: 1.4em; }
+
+#bar { position: fixed; left: 0; right: 0; bottom: 0; height: 56px; display: flex; align-items: center; gap: 8px;
+        padding: 0 16px; background: #0E1626; color: #D5DCEA; font: 15px/1 'IBM Plex Sans', Arial, sans-serif; }
+#bar button { background: #1E2D4F; color: #F7F5EF; border: 1px solid #34497A; border-radius: 8px;
+              padding: 8px 14px; font: inherit; cursor: pointer; }
+#bar button:hover { background: #2B3F6A; }
+#count { min-width: 72px; text-align: center; }
+#progress { position: fixed; left: 0; bottom: 56px; height: 4px; background: #F2A766; transition: width .25s; }
+#hint { margin-left: auto; opacity: .7; }
+#notes { position: fixed; left: 16px; right: 16px; bottom: 72px; max-height: 32vh; overflow: auto; display: none;
+          background: #F7F5EF; color: #14213D; border-radius: 12px; padding: 16px 20px;
+          font: 17px/1.5 'IBM Plex Sans', Arial, sans-serif; box-shadow: 0 8px 40px rgba(0,0,0,.4); }
+#notes.show { display: block; }
+#notes b { color: #B5541A; }
+#menu { position: fixed; top: 0; left: 0; bottom: 56px; width: min(420px, 90vw); overflow: auto; display: none;
+         background: #14213D; padding: 12px; box-sizing: border-box; }
+#menu.show { display: block; }
+#menu button { display: block; width: 100%; text-align: left; background: none; border: 0; color: #D5DCEA;
+               padding: 8px 10px; border-radius: 6px; font: 15px/1.3 'IBM Plex Sans', Arial, sans-serif; cursor: pointer; }
+#menu button:hover, #menu button.here { background: #1E2D4F; color: #fff; }
+#menu button span { display: inline-block; width: 28px; opacity: .6; }
+.menu-group { color: #F2A766; font: 600 12px/1 'IBM Plex Sans', Arial, sans-serif; letter-spacing: 2px;
+               text-transform: uppercase; margin: 14px 10px 6px; }
+@media (max-width: 640px) { #hint { display: none; } #bar { gap: 4px; padding: 0 8px; } #bar button { padding: 8px 10px; } }
+
+/* ---------- deck styles (slides/src/deck.css) ---------- */
+:root {
+  --ink: #14213D;
+  --paper: #F7F5EF;
+  --paper2: #ECE8DD;
+  --body: #3D4558;
+  --orange: #B5541A;
+  --orange-soft: #F6E3D3;
+  --orange-light: #F2A766;
+  --blue: #2B6CB0;
+  --blue-soft: #DCE8F5;
+  --line: #D9D3C4;
+  --card: #FFFDF8;
+  --dark-card: #1E2D4F;
+  --dark-line: #34497A;
+  --dark-text: #D5DCEA;
+}
+
+section {
+  background: var(--paper);
+  color: var(--body);
+  font-family: 'IBM Plex Sans', Arial, sans-serif;
+  padding: 128px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+section.alt { background: var(--paper2); }
+section.dark { background: var(--ink); color: var(--dark-text); }
+section.accent { background: var(--orange-soft); }
+section.center { justify-content: center; }
+
+/* ---------- type scale: 120 / 64 / 36 / 28 / 24 ---------- */
+h1 { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 120px; font-weight: 700; line-height: 1.02; color: var(--ink); }
+h2 { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 64px; font-weight: 700; line-height: 1.1; color: var(--ink); }
+h3 { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 36px; font-weight: 600; line-height: 1.2; color: var(--ink); }
+section.dark h1, section.dark h2, section.dark h3 { color: var(--paper); }
+p { font-size: 28px; line-height: 1.45; }
+
+.head { display: flex; flex-direction: column; gap: 12px; }
+.eyebrow { font-size: 24px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); }
+section.dark .eyebrow { color: var(--orange-light); }
+.lead { font-size: 36px; line-height: 1.4; color: var(--ink); }
+section.dark .lead { color: var(--dark-text); }
+.small { font-size: 24px; line-height: 1.4; }
+.ink { color: var(--ink); }
+
+/* ---------- layout ---------- */
+.row { display: flex; gap: 32px; }
+.grow { flex: 1; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+.grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 24px; }
+.stack { display: flex; flex-direction: column; gap: 20px; }
+
+/* ---------- cards ---------- */
+.card {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: rise 500ms ease-out both;
+  animation-delay: calc(var(--i, 0) * 110ms);
+}
+section.dark .card { background: var(--dark-card); border-color: var(--dark-line); }
+.card.why { border-top: 8px solid var(--orange); }
+.card.what { border-top: 8px solid var(--blue); }
+.card.how { border-top: 8px solid var(--ink); }
+.card.hot { background: var(--blue-soft); border-color: var(--blue); }
+.card.tight { padding: 20px 32px; }
+.card.line { flex-direction: row; align-items: center; gap: 24px; padding: 20px 28px; }
+.tag { font-size: 24px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--ink); }
+.tag.o { color: var(--orange); }
+.tag.b { color: var(--blue); }
+section.dark .tag { color: var(--orange-light); }
+.ct { font-size: 28px; line-height: 1.45; }
+.ct-s { font-size: 24px; line-height: 1.4; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0px); }
+}
+
+/* ---------- callouts ---------- */
+.analogy {
+  background: var(--orange-soft);
+  border-radius: 16px;
+  padding: 24px 32px;
+  font-size: 28px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+section.dark .analogy { background: #3A2E2A; color: #F6E3D3; }
+section.alt .analogy { background: var(--card); border: 2px solid var(--orange-light); }
+.rule {
+  border-left: 8px solid var(--blue);
+  padding: 8px 0 8px 32px;
+  font-size: 32px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--ink);
+}
+section.dark .rule { border-left-color: var(--orange-light); color: var(--paper); }
+
+/* ---------- tables ---------- */
+.tbl { width: 100%; font-size: 26px; color: var(--body); }
+.tbl-s { width: 100%; font-size: 24px; color: var(--body); }
+tr.hd { background: var(--ink); }
+.hd th { color: var(--paper); }
+tr.band { background: var(--blue-soft); }
+
+/* ---------- numbers & code ---------- */
+.big { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 120px; font-weight: 700; line-height: 1; color: var(--blue); }
+.big-before { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 64px; font-weight: 600; line-height: 1; color: var(--orange); }
+.code {
+  background: var(--ink);
+  color: #E6EAF2;
+  border-radius: 16px;
+  padding: 28px 32px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 24px;
+  line-height: 1.55;
+}
+.mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+.step { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 44px; font-weight: 700; line-height: 1; color: var(--blue); }
+
+/* ---------- checkpoints ---------- */
+.question { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 44px; font-weight: 600; line-height: 1.3; color: var(--paper); }
+.answer {
+  background: var(--dark-card);
+  border-left: 8px solid var(--orange-light);
+  border-radius: 12px;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ans { font-size: 28px; line-height: 1.5; color: var(--dark-text); }
+
+/* ---------- click-to-reveal ---------- */
+.fragment { opacity: 0; transform: translateY(12px); transition: opacity 350ms ease-out, transform 350ms ease-out; }
+.fragment.visible { opacity: 1; transform: translateY(0px); }
+
+</style>
+</head>
+<body>
+<div id="viewport"><div id="canvas">
+<section id="cover" class="dark center" data-transition="fade">
+<div class="head">
+<p class="eyebrow">Instructor deck · Theory + hands-on lab</p>
+<h1>Fine-Tuning Large Language Models</h1>
+</div>
+<p class="lead">When to fine-tune, how it works, and how to do it yourself with QLoRA on a free GPU.</p>
+<p class="analogy">A base model is a culinary-school chef: broadly skilled, but not yet yours. <b>Prompting</b> is the order ticket. <b>RAG</b> is the recipe binder. <b>Fine-tuning</b> is the apprenticeship.</p>
+<p class="small">Bala Krishna Ragala</p>
+<aside>Open in the kitchen. Plant the central analogy before any jargon: every later idea maps onto it. Set expectations: the real skill today is judgment (when to fine-tune), not technique. The technique comes in the hands-on lab at the end.</aside>
+</section>
+<section id="howto">
+<div class="head">
+<p class="eyebrow">How this deck works</p>
+<h2>Every concept answers three questions</h2>
+</div>
+<div class="grid3">
+<div class="card why" style="--i:0"><p class="tag o">Why</p><h3>The problem it solves</h3><p class="ct">What goes wrong without it. If you can’t say why, you won’t know when to use it.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">What</p><h3>The idea in plain words</h3><p class="ct">The concept, the moving parts, and the vocabulary you need, without the maths first.</p></div>
+<div class="card how" style="--i:2"><p class="tag">How</p><h3>How you use it</h3><p class="ct">The decision rule, the setting, or the code. In the lab, exactly what to run and what to look for.</p></div>
+</div>
+<div class="grid2">
+<p class="analogy">A shaded strip like this one is the kitchen analogy: the same idea, told as a chef’s apprenticeship.</p>
+<p class="rule">Dark <i>Checkpoint</i> slides: answer first, then click to reveal the model answer.</p>
+</div>
+<aside>Tell the room how to read the deck. Why / What / How on every concept slide; the analogy strip ties it back to the chef; checkpoints are for the room to answer before you click. Encourage people to commit to an answer out loud before the reveal.</aside>
+</section>
+<section id="agenda" class="alt">
+<div class="head">
+<p class="eyebrow">Roadmap</p>
+<h2>Two sessions: decide, then build</h2>
+</div>
+<div class="row">
+<div class="grow">
+<table class="tbl-s">
+<tr class="hd"><th style="width:22%">Time</th><th style="width:10%">Min</th><th style="width:68%">Session 1 · Theory (150 min)</th></tr>
+<tr><td>0:00–0:08</td><td>8</td><td>Welcome and the kitchen analogy</td></tr>
+<tr><td>0:08–0:23</td><td>15</td><td>LLM history and pretraining</td></tr>
+<tr><td>0:23–0:43</td><td>20</td><td>Motivation and the decision framework</td></tr>
+<tr><td>0:43–1:08</td><td>25</td><td>The fine-tuning lifecycle</td></tr>
+<tr class="band"><td>1:08–1:18</td><td>10</td><td>Break</td></tr>
+<tr><td>1:18–1:40</td><td>22</td><td>Taxonomy of approaches</td></tr>
+<tr><td>1:40–1:58</td><td>18</td><td>Needs and risks</td></tr>
+<tr><td>1:58–2:08</td><td>10</td><td>Economics and the checklist</td></tr>
+<tr><td>2:08–2:20</td><td>12</td><td>Cross-industry use cases</td></tr>
+<tr><td>2:20–2:30</td><td>10</td><td>Synthesis and Q&amp;A</td></tr>
+</table>
+</div>
+<div class="card hot" style="width:520px">
+<p class="tag b">Session 2 · Hands-on</p>
+<h3>Build a support-ticket triage assistant</h3>
+<p class="ct-s">Fine-tune Qwen2.5-0.5B with QLoRA on a free Colab T4, then prove the improvement with before/after numbers.</p>
+<p class="ct-s"><b>60–90 min</b>, about 5 of them training.</p>
+</div>
+</div>
+<aside>150 minutes of theory with one break, then the hands-on lab. Set the expectation now: training is only one of nine lifecycle stages, and the lab will show how small the training step really is compared with data and evaluation.</aside>
+</section>
+<section id="tools">
+<div class="head">
+<p class="eyebrow">1 · Framing</p>
+<h2>One chef, four very different moves</h2>
+</div>
+<div class="grid4">
+<div class="card" style="--i:0"><p class="tag o">Prompting</p><h3>The order ticket</h3><p class="ct-s">Change the <b>instruction</b>, not the chef.</p></div>
+<div class="card" style="--i:1"><p class="tag o">RAG</p><h3>The recipe binder</h3><p class="ct-s">Change the <b>information</b> available right now, not the chef.</p></div>
+<div class="card hot" style="--i:2"><p class="tag b">Fine-tuning</p><h3>The apprenticeship</h3><p class="ct-s">Reshape the chef’s <b>instincts</b>, permanently.</p></div>
+<div class="card" style="--i:3"><p class="tag">Pretraining</p><h3>Culinary school</h3><p class="ct-s">How the chef got <b>generally skilled</b> in the first place.</p></div>
+</div>
+<p class="rule">The costliest mistakes: fine-tuning when a prompt or RAG would do, and over-prompting a problem that truly needed retraining. Today’s skill is telling them apart.</p>
+<aside>Four tools, one analogy each. Name the two expensive mistakes explicitly. Everything today builds the judgment to tell which tool a problem needs.</aside>
+</section>
+<section id="history">
+<div class="head">
+<p class="eyebrow">2 · History</p>
+<h2>How we got the base model</h2>
+</div>
+<table class="tbl-s">
+<tr class="hd"><th style="width:24%">Step</th><th style="width:44%">What it solved</th><th style="width:32%">Still missing</th></tr>
+<tr><td>2013 · Word embeddings</td><td>Meaning from the company a word keeps</td><td>Static: “bank” has one vector</td></tr>
+<tr><td>RNNs / LSTMs</td><td>Context: words read in order</td><td>Slow and forgetful</td></tr>
+<tr class="band"><td>2017 · Transformer</td><td>Self-attention: every word sees every other, in parallel</td><td>Nothing structural: it unlocked <b>scale</b></td></tr>
+<tr><td>Two families</td><td>Encoders (BERT) understand; decoders (GPT) generate</td><td>“LLM” today = decoder</td></tr>
+</table>
+<p class="analogy">A Transformer reads the whole order ticket at once and sees how the parts relate, instead of reading word by word and forgetting the top by the bottom.</p>
+<aside>History is load-bearing: every later decision (data needs, forgetting, why a tiny LoRA works) is downstream of understanding pretraining. Keep it brisk; the Transformer row is the one to land.</aside>
+</section>
+<section id="pretrain">
+<div class="head">
+<p class="eyebrow">2 · The crux</p>
+<h2>Pretraining is next-token prediction at scale</h2>
+</div>
+<p class="lead">Predict the next token, trillions of times. To win, the model must absorb grammar, facts, reasoning, code and style. Nobody teaches it the rules.</p>
+<div class="grid2">
+<div class="card why" style="--i:0"><p class="tag o">Consequence 1</p><h3>Knows a lot, obeys nothing</h3><p class="ct">A raw base model just continues text. Assistant behaviour comes later, from instruction tuning.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">Consequence 2</p><h3>Frozen at the cutoff</h3><p class="ct">Anything newer, or private to you, is missing. That gap is exactly what RAG fills.</p></div>
+</div>
+<p class="analogy">Culinary school: cook everything once and absorb the grammar of cooking, but know nothing about your restaurant.</p>
+<aside>The simple objective applied at colossal scale is the whole magic. Capability is forced out by the pressure to predict. The two consequences set up the rest of the session: obedience comes from fine-tuning (instruction tuning is itself fine-tuning), fresh facts come from RAG.</aside>
+</section>
+<section id="base-instruct" class="alt">
+<div class="head">
+<p class="eyebrow">2 · Base vs instruct</p>
+<h2>Same weights at birth, different habits</h2>
+</div>
+<p class="ct">Same prompt to both: <span class="ink"><i>“Classify this ticket and reply with ONLY JSON like {"category": "..."}. Ticket: I was charged twice for my Pro plan.”</i></span></p>
+<div class="grid2">
+<div class="card why" style="--i:0"><p class="tag o">Base · Qwen2.5-0.5B</p><h3>Brilliant autocomplete</h3><p class="ct">Trained only to predict the next token. It ignores the instruction, repeats or continues the text, and doesn’t stop.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">Instruct · Qwen2.5-0.5B-Instruct</p><h3>Follows the ticket</h3><p class="ct">Further trained on instruction → response pairs. Returns clean JSON, but with its own label: <span class="mono">"Billing and Service Issues"</span>, not our <span class="mono">"Billing"</span>.</p></div>
+</div>
+<p class="rule">Instruction tuning gives format-following for free. It does not know <i>your</i> labels, scale or schema. That last gap is the job fine-tuning does.</p>
+<aside>This is the live demo from the lab notebook, section 1c. Base models ramble; instruct models obey but use their own vocabulary. That is why we always fine-tune starting from an instruct model, and why we still need to fine-tune at all.</aside>
+</section>
+<section id="cp1" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 1 · Capability vs disposition</p>
+</div>
+<p class="question">A raw, pretrained-only model is asked: “Write me a haiku about the sea.” Why might it not write one, and what does that reveal about pretraining?</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans">Pretraining only taught it to <b>continue plausible text</b>, not to <b>follow instructions</b>. Online, that line could be followed by anything. The model has the <i>capability</i> to write a haiku but not the <i>disposition</i> to treat your sentence as a command. Closing that gap is exactly what instruction tuning does.</p>
+</div>
+<aside>Let the room attempt it before you click. The point: capability is not disposition. Tie it back to the base-vs-instruct slide: the base model rambled because nobody taught it that a ticket means make this now.</aside>
+</section>
+<section id="why-ft">
+<div class="head">
+<p class="eyebrow">3 · Motivation</p>
+<h2>Why fine-tuning exists: three reasons</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="step">1</p><h3>Reliable behaviour</h3><p class="ct-s">A prompt is a suggestion to a probabilistic system. At 10,000 replies a day, “usually follows the style” means hundreds of misses. Fine-tuning makes the behaviour the <b>default</b>.</p></div>
+<div class="card" style="--i:1"><p class="step">2</p><h3>A real skill or format gap</h3><p class="ct-s">A strict schema, a niche citation format, a low-resource language. If the model can’t do it, no prompt will fix it. You have to <b>teach</b> it.</p></div>
+<div class="card" style="--i:2"><p class="step">3</p><h3>Cost and latency at scale</h3><p class="ct-s">Fine-tune a <b>small</b> model to match a prompted giant on one narrow task: cheaper and faster on every call, forever.</p></div>
+</div>
+<p class="rule">Fine-tuning is for behaviour, skill, style and format. It is a clumsy, expensive way to teach facts, especially facts that change.</p>
+<aside>Three reasons: reliability of behaviour, genuine skill or format gaps, and cost and latency at scale. The lab hits all three: a strict JSON schema, consistent labels, and a 0.5B model small enough to run on every ticket.</aside>
+</section>
+<section id="three-knobs" class="dark">
+<div class="head">
+<p class="eyebrow">3 · The core distinction</p>
+<h2>Three knobs, three different jobs</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="tag">Fine-tuning</p><h3>Changes how the model behaves</h3></div>
+<div class="card" style="--i:1"><p class="tag">RAG</p><h3>Changes what the model knows right now</h3></div>
+<div class="card" style="--i:2"><p class="tag">Prompting</p><h3>Changes what you ask in this moment</h3></div>
+</div>
+<p class="analogy">Not competitors: a sommelier’s trained taste (fine-tuning) plus tonight’s wine list (RAG) plus the guest’s request (prompt).</p>
+<p class="rule">Use the cheapest tool that solves the problem, and combine them when you need to.</p>
+<aside>This is the single most important distinction of the day. Say it as a rule and come back to it: behaviour, knowledge, request. Most production systems combine all three.</aside>
+</section>
+<section id="decision-table">
+<div class="head">
+<p class="eyebrow">3 · Decision framework</p>
+<h2>From cheapest to most permanent</h2>
+</div>
+<table class="tbl">
+<tr class="hd"><th style="width:18%">Tool</th><th style="width:22%">Changes</th><th style="width:32%">Best for</th><th style="width:28%">Weak at</th></tr>
+<tr><td>Prompting</td><td>The instruction, now</td><td>Steering, formatting, prototyping</td><td>Reliability at scale; skill gaps</td></tr>
+<tr><td>RAG</td><td>Knowledge at answer time</td><td>Fresh or private facts, citations</td><td>Changing style or skill</td></tr>
+<tr class="band"><td>Fine-tuning</td><td>The weights (instincts)</td><td>Consistent style, format, narrow skill, cheaper inference</td><td>Fresh or changing facts</td></tr>
+<tr><td>Combination</td><td>Several at once</td><td>Most serious production systems</td><td>More moving parts</td></tr>
+</table>
+<p class="rule">Read the table top to bottom: move down a row only when the row above genuinely can’t solve it.</p>
+<aside>Walk the four tools from cheapest to most permanent. Most “we need to fine-tune” requests die at the first row once someone writes a better prompt.</aside>
+</section>
+<section id="decision-qs" class="alt">
+<div class="head">
+<p class="eyebrow">3 · Ask in order, stop at the first yes</p>
+<h2>Five questions before you fine-tune</h2>
+</div>
+<div class="stack">
+<div class="card tight" style="--i:0"><p class="ct"><b>1. Can a better prompt fix it?</b> It’s free and fast. Always try it first.</p></div>
+<div class="card tight" style="--i:1"><p class="ct"><b>2. Is knowledge missing or changing?</b> Use RAG. Never fine-tune facts that change.</p></div>
+<div class="card hot tight" style="--i:2"><p class="ct"><b>3. Do you need consistent behaviour, style, format or skill, and have examples of “right”?</b> Fine-tune. This is its home turf.</p></div>
+<div class="card tight" style="--i:3"><p class="ct"><b>4. Is it a fixed task at high volume where cost or latency hurts?</b> Fine-tune a smaller model.</p></div>
+<div class="card tight" style="--i:4"><p class="ct"><b>5. More than one of the above?</b> Combine: fine-tune for voice and format, RAG for facts.</p></div>
+</div>
+<aside>Stop at the first yes. Question 1 honestly kills most fine-tuning requests. Our lab problem passes question 3: consistent labels and a strict format, with clear right answers.</aside>
+</section>
+<section id="cp2" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 2 · Facts vs behaviour</p>
+</div>
+<p class="question">The support bot keeps citing last year’s refund policy. Someone proposes fine-tuning it on the new policy document. Good idea? What would you do instead?</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans"><b>Bad idea.</b> A policy is knowledge that changes: fine-tuning’s worst case. You’d pay to hard-code a fact that goes stale on the next legal update, and the model may still mix up old and new. Use <b>RAG</b>: store the current policy, fetch the relevant section at answer time. A policy change becomes a one-document edit, not a retrain. Save fine-tuning for <i>how</i> the bot answers: tone, structure, refusals.</p>
+</div>
+<aside>A classic trap. The policy is changing knowledge, so the answer is RAG. Contrast with the lab: our categories and JSON format are behaviour, which is why fine-tuning fits there.</aside>
+</section>
+<section id="lifecycle">
+<div class="head">
+<p class="eyebrow">4 · The lifecycle</p>
+<h2>Training is only one of nine stages</h2>
+</div>
+<div class="grid3">
+<div class="card line" style="--i:0"><p class="step">1</p><h3>Problem definition</h3></div>
+<div class="card line" style="--i:1"><p class="step">2</p><h3>Data and curation</h3></div>
+<div class="card line" style="--i:2"><p class="step">3</p><h3>Base model selection</h3></div>
+<div class="card line" style="--i:3"><p class="step">4</p><h3>Choose the approach</h3></div>
+<div class="card hot line" style="--i:4"><p class="step">5</p><h3>Training</h3></div>
+<div class="card line" style="--i:5"><p class="step">6</p><h3>Evaluation</h3></div>
+<div class="card line" style="--i:6"><p class="step">7</p><h3>Deployment</h3></div>
+<div class="card line" style="--i:7"><p class="step">8</p><h3>Monitoring, drift</h3></div>
+<div class="card line" style="--i:8"><p class="step">9</p><h3>Iteration</h3></div>
+</div>
+<p class="rule">Projects die in data and evaluation, not in the GPU run. Fine-tuning is a data and evaluation project that happens to use a GPU.</p>
+<aside>Training is one of nine. In the lab, the training call is a single line and about 4 minutes; most of the notebook is data, formatting and evaluation. Use that as proof of this slide.</aside>
+</section>
+<section id="stages13">
+<div class="head">
+<p class="eyebrow">4 · Stages 1–3</p>
+<h2>Define, curate, choose the chef</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="step">1</p><h3>Problem definition</h3><p class="ct-s">One sentence: the task, the input, the output, the <b>success metric</b> and the minimum bar. <b>Write the evaluation before the data.</b></p></div>
+<div class="card" style="--i:1"><p class="step">2</p><h3>Data and curation</h3><p class="ct-s">The model becomes its data. <b>Consistency beats volume</b>: a few hundred to a few thousand clean, on-style examples. Hold out a test set. Watch for leakage.</p></div>
+<div class="card" style="--i:2"><p class="step">3</p><h3>Base model selection</h3><p class="ct-s">Size, licence, modality, language, open vs API. Pick the <b>smallest</b> model that clears your bar, because cost scales downstream.</p></div>
+</div>
+<p class="analogy">In the lab: schema and targets written first · 351 balanced tickets, 35 held out · Qwen2.5-0.5B-Instruct, the smallest model that clears the bar.</p>
+<aside>Write the evaluation before the data. Consistency beats volume. Match capacity to the task and choose the smallest model that clears the bar. The analogy strip maps each stage onto what the lab actually does.</aside>
+</section>
+<section id="stages46">
+<div class="head">
+<p class="eyebrow">4 · Stages 4–6</p>
+<h2>Approach, train, evaluate</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="step">4</p><h3>Choose the approach</h3><p class="ct-s">Options differ in cost by <b>orders of magnitude</b>. Most teams should start with LoRA or QLoRA.</p></div>
+<div class="card" style="--i:1"><p class="step">5</p><h3>Training</h3><p class="ct-s">The dials are learning rate and epochs. Train conservatively. <b>Validation loss rising while training loss falls means memorization: stop.</b></p></div>
+<div class="card" style="--i:2"><p class="step">6</p><h3>Evaluation</h3><p class="ct-s">A held-out set and a real <b>baseline</b> (the prompted base model). Is it better than the cheap option, by enough to justify the cost? Plus a regression check.</p></div>
+</div>
+<p class="analogy">In the lab: QLoRA on a T4 · loss 2.14 → 0.12, eval loss falling every epoch · baseline measured before training, then the same test re-run after.</p>
+<aside>Start with LoRA or QLoRA. Train conservatively. The overfitting signal is validation loss rising while training loss keeps falling. Evaluation always needs a baseline, and the cheapest honest baseline is the prompted base model.</aside>
+</section>
+<section id="stages79">
+<div class="head">
+<p class="eyebrow">4 · Stages 7–9</p>
+<h2>Deploy, monitor, iterate</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="step">7</p><h3>Deployment</h3><p class="ct-s">Behind a flag, rolled out gradually, with instant rollback. LoRA adapters are small and hot-swappable, so rollback is “detach the adapter”.</p></div>
+<div class="card" style="--i:1"><p class="step">8</p><h3>Monitoring and drift</h3><p class="ct-s">Live quality, user signals, <b>distribution drift</b>. A model frozen in time quietly decays as the world moves.</p></div>
+<div class="card" style="--i:2"><p class="step">9</p><h3>Iteration</h3><p class="ct-s">It’s a loop. Failure cases are your <b>highest-quality</b> new training data: add them, retrain, re-evaluate, redeploy.</p></div>
+</div>
+<p class="analogy">In the lab: we save both a ~35 MB adapter and a merged ~1 GB model, and the misclassified tickets show exactly what data to add next.</p>
+<aside>Ship behind a flag and roll back fast; LoRA shines here. Monitor for drift. Failures are your best future training data. In the lab the priority misses on Urgent tickets are precisely that.</aside>
+</section>
+<section id="cp3" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 3 · Loss is not success</p>
+</div>
+<p class="question">“Training loss went down, so the fine-tune worked. Let’s ship.” What’s wrong with that, and which two checks do you demand?</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans">Falling training loss only proves the model fits the <b>training</b> examples better, which is also what memorization looks like. Demand: (1) evaluation on a <b>held-out test set</b> against the Stage-1 metric and a real baseline (the prompted base model); (2) a <b>general-capability regression check</b> to catch catastrophic forgetting. Loss is a training diagnostic, not a measure of success.</p>
+</div>
+<aside>Low training loss can be memorization. Demand a held-out evaluation against a baseline, plus a regression check. The lab does exactly this: it scores the same 35 held-out tickets before and after training.</aside>
+</section>
+<section id="break" class="accent center">
+<p class="eyebrow">10 minutes</p>
+<h1>Break</h1>
+<p class="lead">Back at 1:18. Next: the techniques. Full fine-tuning, LoRA, QLoRA, SFT, RLHF and DPO.</p>
+<aside>Ten minutes. Coming back: the actual techniques, ordered as a cost ladder.</aside>
+</section>
+<section id="ladder" class="alt">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · The map</p>
+<h2>Two questions sort every technique</h2>
+</div>
+<div class="grid2">
+<div class="card what" style="--i:0"><p class="tag b">Question 1 · How many weights move?</p><h3>The cost axis</h3><p class="ct-s"><b>Full fine-tuning</b>: every weight. <b>LoRA</b>: small add-on matrices, base frozen. <b>QLoRA</b>: LoRA on a 4-bit compressed base, the cheapest of all.</p></div>
+<div class="card why" style="--i:1"><p class="tag o">Question 2 · What signal teaches it?</p><h3>The goal axis</h3><p class="ct-s"><b>SFT</b>: examples of the right answer (input → ideal output). <b>RLHF / DPO</b>: preferences between two answers (A is better than B).</p></div>
+</div>
+<p class="rule">They combine: you usually do SFT <i>via</i> LoRA or QLoRA. The lab is exactly that, SFT delivered through QLoRA.</p>
+<aside>A new framing slide before the details. Students often treat LoRA and SFT as alternatives. They answer different questions: LoRA is how many weights move, SFT is what signal you train on. Every technique on the next slides sits somewhere on these two axes.</aside>
+</section>
+<section id="full-ft">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · A</p>
+<h2>Full fine-tuning</h2>
+</div>
+<div class="grid3">
+<div class="card why" style="--i:0"><p class="tag o">Why</p><p class="ct-s">Maximum control. For deep changes of domain, language or behaviour, when you have lots of data and budget.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">What</p><p class="ct-s">Update <b>every</b> weight: all billions are free to change.</p></div>
+<div class="card how" style="--i:2"><p class="tag">How to think about it</p><p class="ct-s">Needs a big dataset and GPU memory of <b>many times the model size</b> (weights + gradients + optimizer state), plus a full model copy per task. Highest risk of catastrophic forgetting.</p></div>
+</div>
+<p class="rule">Most teams don’t need this. Reach for it only when LoRA has clearly hit its ceiling.</p>
+<p class="analogy">Retrain every instinct the chef has, from knife grip to plating. Total transformation, total cost.</p>
+<aside>All weights move. Most powerful, most expensive, highest forgetting risk. Reserve for deep domain shifts with ample data and budget. In the lab's memory table, full fine-tuning of even a 1.5B model doesn't fit a free T4.</aside>
+</section>
+<section id="lora">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · B · PEFT</p>
+<h2>LoRA: low-rank adaptation</h2>
+</div>
+<div class="grid3">
+<div class="card why" style="--i:0"><p class="tag o">Why</p><p class="ct-s">You don’t need to move every weight to change behaviour a lot. The change a narrow task needs is small compared with the model.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">What</p><p class="ct-s"><b>Freeze</b> the base. Beside each big weight matrix, add two skinny ones, <span class="mono">ΔW ≈ B·A</span>, and train only those. A 10,000×10,000 change (100M numbers) becomes 10,000×8 + 8×10,000 (160K numbers).</p></div>
+<div class="card how" style="--i:2"><p class="tag">How</p><p class="ct-s">Pick the rank <span class="mono">r</span> (8–16 for narrow tasks), the strength <span class="mono">alpha</span> (≈ 2×r), and which layers get adapters (attention + MLP). Trains roughly 0.1–2% of the parameters.</p></div>
+</div>
+<p class="analogy">Don’t retrain the brain: clip targeted sticky notes onto existing skills. The chef stays intact, so forgetting is limited. The notes are small, and you can swap many sets onto one chef.</p>
+<aside>Big idea: the adaptation a task needs is low-rank. LoRA freezes the base and trains skinny matrices. The share of trainable parameters is well under 1% on big models; on our tiny 0.5B lab model it's about 2% (about 8.8M parameters), and the saved adapter is about 35 MB. Because B starts at zero, the model behaves exactly like the base at step 0, which the lab uses for a free baseline.</aside>
+</section>
+<section id="qlora">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · B continued</p>
+<h2>QLoRA and the adapter family</h2>
+</div>
+<div class="grid3">
+<div class="card why" style="--i:0"><p class="tag o">Why</p><p class="ct-s">Even a frozen base must sit in GPU memory. At 16 bits, big models don’t fit on one modest GPU.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">What</p><p class="ct-s"><b>Quantize</b> the frozen base to 4-bit (NF4), about <b>4× less memory</b>, then train LoRA adapters on top in 16-bit. The adapters absorb most of the precision loss.</p></div>
+<div class="card how" style="--i:2"><p class="tag">How</p><p class="ct-s">Load with a 4-bit config, freeze, add LoRA, turn on gradient checkpointing. The pragmatic default on a single GPU, and what the lab runs on a free T4.</p></div>
+</div>
+<p class="ct-s"><b>Adapters in general</b>: small trainable modules inserted into a frozen network. LoRA is the most popular kind. Their value is modularity: one base, many swappable skills.</p>
+<p class="analogy">QLoRA: coach the apprentice against a compressed reference copy of the master chef. Slightly lower fidelity, far less room needed.</p>
+<aside>QLoRA = quantize the frozen base to 4-bit, then LoRA on top. It democratized fine-tuning: big models on one modest GPU. NF4 is a 4-bit format shaped like the bell curve of real weights, so it loses less than plain int4. Adapters are the general modular family.</aside>
+</section>
+<section id="sft">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · C</p>
+<h2>Instruction tuning and SFT</h2>
+</div>
+<div class="grid3">
+<div class="card why" style="--i:0"><p class="tag o">Why</p><p class="ct-s">A base model has capability but not obedience: it continues text instead of following orders.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">What</p><p class="ct-s"><b>Supervised fine-tuning</b> on (instruction → ideal response) pairs. SFT is the mechanism; instruction tuning is SFT aimed at following instructions in general.</p></div>
+<div class="card how" style="--i:2"><p class="tag">How</p><p class="ct-s">Format each pair in the model’s chat template, train it to predict the response, and measure on held-out pairs. In the lab: 281 (ticket → triage JSON) pairs.</p></div>
+</div>
+<p class="rule">SFT is <i>what</i> you teach; LoRA or QLoRA is <i>how</i> you teach it cheaply. Not either/or.</p>
+<p class="analogy">Teach the chef that a ticket is a command: ticket plus the correct finished plate, repeated until “make exactly that” is second nature.</p>
+<aside>SFT is the mechanism; instruction tuning teaches obedience. You usually do SFT via LoRA, not instead of it. The lab is SFT on 281 ticket-to-JSON pairs, delivered through QLoRA.</aside>
+</section>
+<section id="pref">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · D</p>
+<h2>Preference tuning: RLHF and DPO</h2>
+</div>
+<p class="lead">Of two correct answers, one is more helpful, safer or on-tone. Preference tuning teaches that <b>taste</b>: most of what we call alignment.</p>
+<div class="grid2">
+<div class="card" style="--i:0"><p class="tag o">RLHF</p><h3>Train a judge, then optimize</h3><p class="ct-s">People rank pairs of answers → train a <b>reward model</b> → use reinforcement learning to make the LLM score high. Powerful, multi-stage, somewhat unstable.</p></div>
+<div class="card hot" style="--i:1"><p class="tag b">DPO</p><h3>Learn straight from the pairs</h3><p class="ct-s">The same “A is better than B” data, but optimize the model <b>directly</b>: no reward model, no RL. Simpler, more stable, very popular.</p></div>
+</div>
+<p class="analogy">Refine the palate: the head chef picks the better of two good plates, thousands of times.</p>
+<aside>Between two good answers, which is better? Preference tuning teaches taste and alignment. RLHF is reward model plus RL: powerful, fiddly. DPO learns directly from preference pairs: simpler and now the common choice.</aside>
+</section>
+<section id="cp4" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 4 · Pick the approach</p>
+</div>
+<p class="question">Teach a company writing style from a few thousand examples, on one modest GPU, with instant rollback if customers hate it. Which approach, and what would you <i>not</i> choose?</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans"><b>SFT delivered via QLoRA</b> (or LoRA if memory allows). SFT because you have input → output style examples; QLoRA for the single-GPU budget; an adapter because it’s small and swappable, so you detach it to roll straight back. <b>Not full fine-tuning</b>: overkill, a full model copy per task, the most forgetting, heavy rollback. <b>Not RLHF/DPO yet</b>: this is a style problem with clear right answers, not a subtle preference between two good ones.</p>
+</div>
+<aside>SFT via QLoRA. The adapter gives instant rollback. Not full fine-tuning (overkill); not RLHF or DPO (this is a style problem with right answers). This is exactly the recipe the lab uses.</aside>
+</section>
+<section id="needs">
+<div class="head">
+<p class="eyebrow">6 · What you need</p>
+<h2>Before you start: three honest checks</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="tag o">Data</p><h3>Hundreds, not millions</h3><p class="ct-s">A few hundred to a few thousand examples for SFT with LoRA. <b>Consistency beats volume</b>: contradictions get learned faithfully.</p></div>
+<div class="card" style="--i:1"><p class="tag o">Compute and cost</p><h3>An enormous spread</h3><p class="ct-s">Full fine-tuning: a cluster and real money. QLoRA: one GPU, from free (Colab T4) to a few hundred dollars. The approach choice is where money is saved or burned.</p></div>
+<div class="card" style="--i:2"><p class="tag o">Team skills</p><h3>Eval design is rarest</h3><p class="ct-s">Data curation (the usual bottleneck), reading training curves, and, rarest and most important, <b>honest evaluation design</b>.</p></div>
+</div>
+<p class="analogy">A few perfect reference plates teach more than a thousand sloppy, contradictory ones.</p>
+<aside>Data quality beats volume. The cost spread is enormous, so the approach choice is where money is saved or burned. The lab is the cheap end: 281 examples, a free GPU, about 4 minutes of training.</aside>
+</section>
+<section id="risks" class="alt">
+<div class="head">
+<p class="eyebrow">6 · Key risks and mitigations</p>
+<h2>Four ways fine-tuning quietly hurts you</h2>
+</div>
+<table class="tbl-s">
+<tr class="hd"><th style="width:22%">Risk</th><th style="width:32%">What happens</th><th style="width:46%">Mitigation</th></tr>
+<tr><td>Catastrophic forgetting</td><td>The narrow task overwrites general skills</td><td>LoRA (frozen base), low learning rate and few epochs, mix in general data, run a regression test</td></tr>
+<tr><td>Overfitting</td><td>Memorizes examples; brittle on new ones</td><td>Stop when validation loss rises, add diversity, prefer LoRA</td></tr>
+<tr><td>Data leakage</td><td>Test examples bleed into training; personal data gets memorized</td><td>Strict de-duplicated splits, scrub PII, test for regurgitation</td></tr>
+<tr><td>Alignment regression</td><td>Safety and tone guardrails erode</td><td>Mix in safety data, red-team before and after, gate the release on it</td></tr>
+</table>
+<p class="rule">Freezing the base with LoRA mitigates several of these at once. That is a structural choice, not a training trick.</p>
+<aside>Forgetting, overfitting, leakage, alignment regression, each with a structural mitigation. Kitchen versions: the pastry obsessive who forgot how to grill; the cook who freezes on the eleventh plate; practising only the exam dish; dropping hygiene for speed.</aside>
+</section>
+<section id="cp5" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 5 · The silent risk</p>
+</div>
+<p class="question">Name the risk where a narrow fine-tune quietly undoes general ability. Give two mitigations, at least one of them structural (about which approach you pick).</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans"><b>Catastrophic forgetting.</b> Structural: use <b>LoRA / PEFT</b>. With the base frozen, general skills are physically untouched. Plus any of: train conservatively (lower learning rate, fewer epochs), mix in general data, and always run a <b>general-capability regression test</b> so you catch forgetting before you ship.</p>
+</div>
+<aside>Catastrophic forgetting. The structural mitigation is PEFT or LoRA with a frozen base, plus conservative training and a regression test. Don't let the narrow task overwrite broad competence, and measure to be sure.</aside>
+</section>
+<section id="economics">
+<div class="head">
+<p class="eyebrow">7 · Economics</p>
+<h2>Where the money actually goes</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="tag o">Prompting</p><h3>Free to build</h3><p class="ct-s">But a recurring cost and latency on <b>every call</b>: long instructions × millions of calls.</p></div>
+<div class="card" style="--i:1"><p class="tag o">RAG</p><h3>Cheap to keep current</h3><p class="ct-s">Modest build plus retrieval per call. Update a document, not a model.</p></div>
+<div class="card hot" style="--i:2"><p class="tag b">Fine-tuning</p><h3>Pay up front</h3><p class="ct-s">Training, serving and retraining cost money, but every call is <b>cheaper and faster</b> afterwards.</p></div>
+</div>
+<p class="rule">Fine-tuning trades upfront and maintenance cost for cheaper per-call inference. It pays off at high volume on a stable task, and loses on low-volume or fast-changing ones.</p>
+<p class="analogy">The apprenticeship pays back only if the chef cooks that style thousands of times.</p>
+<aside>Prompting: free build, recurring per-call cost. RAG: cheap to keep current. Fine-tuning: upfront plus serving plus maintenance, but cheaper per call. In the lab, a 0.5B model with a short prompt replaces a long instruction prompt on a larger model, on every ticket.</aside>
+</section>
+<section id="checklist" class="alt">
+<div class="head">
+<p class="eyebrow">7 · Should we fine-tune?</p>
+<h2>The go / no-go checklist</h2>
+</div>
+<div class="grid2">
+<div class="stack">
+<div class="card tight hot" style="--i:0"><p class="ct-s"><b>1.</b> Prompting and RAG were tried and are genuinely not enough. <i>(The most skipped.)</i></p></div>
+<div class="card tight hot" style="--i:1"><p class="ct-s"><b>2.</b> The problem is behaviour, style, format or skill, not changing facts.</p></div>
+<div class="card tight" style="--i:2"><p class="ct-s"><b>3.</b> You have, or can create, a few hundred clean, consistent examples.</p></div>
+<div class="card tight" style="--i:3"><p class="ct-s"><b>4.</b> The task is stable enough not to be obsolete in weeks.</p></div>
+</div>
+<div class="stack">
+<div class="card tight" style="--i:4"><p class="ct-s"><b>5.</b> Volume is high enough to justify the upfront and maintenance cost.</p></div>
+<div class="card tight hot" style="--i:5"><p class="ct-s"><b>6.</b> You can evaluate honestly: held-out set, metric, baseline.</p></div>
+<div class="card tight" style="--i:6"><p class="ct-s"><b>7.</b> You have the skills and budget for curation, training and monitoring.</p></div>
+<div class="card tight" style="--i:7"><p class="ct-s"><b>8.</b> You have a plan for the four risks.</p></div>
+</div>
+</div>
+<p class="rule">A “no” on 1, 2 or 6 (highlighted) means you’re not ready.</p>
+<aside>You want mostly yes before committing. No on 1, 2 or 6 means not ready; that's the framework doing its job. Run the lab problem through it: a carefully prompted instruct model got only 31% category accuracy, so prompting is genuinely not enough (1 is yes); labels and format are behaviour (2 is yes); and we have a held-out test set with a baseline (6 is yes).</aside>
+</section>
+<section id="industries">
+<div class="head">
+<p class="eyebrow">8 · Across industries</p>
+<h2>Fine-tune the craft, retrieve the facts</h2>
+</div>
+<table class="tbl-s">
+<tr class="hd"><th style="width:16%">Industry</th><th style="width:48%">Fine-tune for (behaviour)</th><th style="width:36%">RAG for (facts)</th></tr>
+<tr class="band"><td>Support</td><td>Voice, diagnose → resolve structure, ticket classification, escalation</td><td>Current policy, account details</td></tr>
+<tr><td>Healthcare</td><td>Clinical language, note format, coding</td><td>Guidelines; patient records (never in weights)</td></tr>
+<tr><td>Legal</td><td>Drafting style, citation format, clause analysis</td><td>Statutes and case law</td></tr>
+<tr><td>Finance</td><td>Report formats, risk tone, compliance phrasing</td><td>Live market data, regulations</td></tr>
+<tr><td>Code</td><td>House conventions, internal frameworks and idioms</td><td>The current repository</td></tr>
+</table>
+<p class="rule">Every mature system blends all three tools. The skill is choosing the blend. Our lab takes the highlighted row: support-ticket classification.</p>
+<aside>The pattern everywhere: fine-tune voice, format and skill; use RAG for facts. Healthcare: never bake patient data into weights. Then segue: the highlighted support row is exactly what we build in the hands-on lab.</aside>
+</section>
+<section id="lab-intro" class="dark center">
+<p class="eyebrow">Session 2 · Hands-on lab</p>
+<h1>Build a support-ticket triage assistant</h1>
+<p class="lead">Fine-tune Qwen2.5-0.5B-Instruct with QLoRA on a free Colab T4, then prove it got better.</p>
+<div class="grid4">
+<div class="card" style="--i:0"><p class="tag">Model</p><p class="ct-s">Qwen2.5-0.5B-Instruct</p></div>
+<div class="card" style="--i:1"><p class="tag">Method</p><p class="ct-s">QLoRA + SFT, via trl’s SFTTrainer</p></div>
+<div class="card" style="--i:2"><p class="tag">Hardware</p><p class="ct-s">Colab T4, ~15 GB VRAM</p></div>
+<div class="card" style="--i:3"><p class="tag">Time</p><p class="ct-s">~4 min training, 60–90 min lab</p></div>
+</div>
+<aside>Switch from deciding to building. Everything from the theory session shows up here: an instruct starting point, SFT via QLoRA, a held-out evaluation with a baseline. Students follow along in the notebook Fine_Tuning_LLMs_S2_Python_Bala_Krishna_Ragala_V2.ipynb.</aside>
+</section>
+<section id="lab-problem">
+<div class="head">
+<p class="eyebrow">Lab · Problem statement</p>
+<h2>Triage every ticket, the same way, in a format software can use</h2>
+</div>
+<p class="rule">Given the raw text of a support ticket, produce a category, a priority and a draft reply, as exact JSON that the ticketing system can consume with no human reformatting.</p>
+<table class="tbl-s">
+<tr class="hd"><th style="width:50%">What we need</th><th style="width:50%">What a general LLM does</th></tr>
+<tr><td>One of <i>our</i> 6 categories, spelled exactly (Billing, Technical Issue, …)</td><td>Invents labels: “Billing and Service Issues”</td></tr>
+<tr><td>One of <i>our</i> 4 priorities (Low → Urgent), by <i>our</i> policy</td><td>Guesses, with no idea what Urgent means here</td></tr>
+<tr><td>Only JSON, exactly 3 keys, every single time</td><td>Adds chatty preambles, code fences, extra keys</td></tr>
+<tr><td>Cheap and private enough to run on every ticket</td><td>Big API models cost per call and send customer data off-site</td></tr>
+</table>
+<aside>Today a human triages by hand: slow, inconsistent between agents, and urgent tickets get buried. Downstream software can't use output that is usually right; it needs output that is reliably right in the exact format. This is a behaviour gap, so by our decision questions, it is a fine-tuning problem.</aside>
+</section>
+<section id="lab-usecase" class="alt">
+<div class="head">
+<p class="eyebrow">Lab · Use case</p>
+<h2>One ticket in, one JSON object out</h2>
+</div>
+<div class="row">
+<div class="stack grow">
+<p class="tag o">Input: a raw ticket</p>
+<p class="code">Hi, I was charged $49 twice for my<br>Pro plan this month. Can you fix<br>this ASAP?</p>
+<p class="tag b">Output: exactly this shape</p>
+<p class="code">{"category": "Billing",<br>&#160;"priority": "High",<br>&#160;"suggested_reply": "Hi, I’m sorry about<br>&#160;&#160;the duplicate charge…"}</p>
+</div>
+<div class="stack" style="width:640px">
+<div class="card" style="--i:0"><p class="tag">category</p><p class="ct-s">Routes the ticket to the right team’s queue.</p></div>
+<div class="card" style="--i:1"><p class="tag">priority</p><p class="ct-s">Starts the right response-time clock.</p></div>
+<div class="card" style="--i:2"><p class="tag">suggested_reply</p><p class="ct-s">Pre-fills the agent’s reply box. A person still approves it.</p></div>
+</div>
+</div>
+<aside>Make it concrete: one ticket in, one object out. Each field has a consumer in the ticketing system. The model does the grunt work; a human still approves the reply.</aside>
+</section>
+<section id="lab-why">
+<div class="head">
+<p class="eyebrow">Lab · Why fine-tune here</p>
+<h2>Our decision questions, applied</h2>
+</div>
+<table class="tbl-s">
+<tr class="hd"><th style="width:26%">Approach</th><th style="width:74%">Verdict for ticket triage</th></tr>
+<tr><td>Better prompt</td><td>Tried: a 0.5B model follows long instructions unreliably. Category accuracy 23–31%. And every call carries the long prompt.</td></tr>
+<tr><td>RAG</td><td>Adds knowledge. Our gap is behaviour (format and labelling policy). There’s nothing to look up.</td></tr>
+<tr><td>Big hosted model</td><td>Works, but costs per ticket, adds latency, and sends customer data to a third party.</td></tr>
+<tr class="band"><td>Fine-tune a small model</td><td>Bakes format and policy into the weights: short prompts, fast, cheap, private, consistent.</td></tr>
+</table>
+<p class="rule">Prompting and RAG change what the model knows at request time. Fine-tuning changes how it behaves every time. This is a behaviour problem.</p>
+<aside>Walk the decision questions on the real problem. Question 1 (better prompt) was tried and failed: 23–31% category accuracy in the baseline. Question 2 doesn't apply: no facts to fetch. Question 3 applies: consistent format and labels with clear right answers.</aside>
+</section>
+<section id="lab-goal">
+<div class="head">
+<p class="eyebrow">Lab · Goal and objectives</p>
+<h2>Turn a model that fails into a reliable specialist</h2>
+</div>
+<div class="row">
+<div class="card hot" style="width:560px;--i:0"><p class="tag b">Goal</p><p class="ct">Take a small instruct model that <b>fails</b> at triage and, with QLoRA on a free T4 in minutes, make it <b>reliably</b> emit correct, schema-valid JSON. Then <b>prove</b> it on tickets it never saw.</p></div>
+<div class="grow">
+<p class="tag">By the end you can…</p>
+<ol class="ct">
+<li>Explain base vs instruct, and why we start from instruct</li>
+<li>Design a dataset: schema first, balanced labels, train / val / test</li>
+<li>Format examples with the chat template, without truncating answers</li>
+<li>Load a model in 4-bit and attach LoRA, knowing every setting</li>
+<li>Run SFTTrainer within T4 memory limits</li>
+<li>Read a loss curve: healthy, overfitting or broken</li>
+<li>Evaluate before vs after with task metrics, not just loss</li>
+<li>Save, merge and run the fine-tuned model</li>
+</ol>
+</div>
+</div>
+<aside>These match the learning objectives at the top of the notebook, one per notebook section. Read the goal out loud; the objectives are for students to tick off.</aside>
+</section>
+<section id="lab-success" class="alt">
+<div class="head">
+<p class="eyebrow">Lab · Success criteria</p>
+<h2>Decide what “worked” means before training</h2>
+</div>
+<table class="tbl">
+<tr class="hd"><th style="width:22%">Metric</th><th style="width:40%">Question it answers</th><th style="width:20%">Before (typical)</th><th style="width:18%">Target</th></tr>
+<tr><td>valid_json</td><td>Can a program parse the output at all?</td><td>94–97%</td><td>100%</td></tr>
+<tr><td>category_acc</td><td>Routed to the right team? (exact match)</td><td>23–31%</td><td>≥ 90%</td></tr>
+<tr><td>priority_acc</td><td>Right urgency? (exact match)</td><td>37–40%</td><td>≥ 85%</td></tr>
+</table>
+<div class="grid2">
+<p class="analogy">Same model, same 35 held-out tickets, same code, before and after. The only thing that changes is the fine-tuning.</p>
+<p class="rule">Exact match is strict on purpose: “Billing and Service Issues” is wrong, because the ticketing system only knows “Billing”.</p>
+</div>
+<aside>Stage 1 of the lifecycle, done properly: the metric and the bar are written before any data or training. The before numbers are the range across two verified runs (local and Colab T4). LoRA starts at zero, so evaluating before training is evaluating the base model, for free.</aside>
+</section>
+<section id="lab-pipeline">
+<div class="head">
+<p class="eyebrow">Lab · The pipeline</p>
+<h2>Eight steps, one notebook</h2>
+</div>
+<div class="grid4">
+<div class="card" style="--i:0"><h3><span style="color:#2B6CB0">1</span> · Data</h3><p class="ct-s">351 synthetic tickets, split 281 / 35 / 35. <i>§2</i></p></div>
+<div class="card" style="--i:1"><h3><span style="color:#2B6CB0">2</span> · Chat template</h3><p class="ct-s">System rules + ticket + target JSON. <i>§3</i></p></div>
+<div class="card" style="--i:2"><h3><span style="color:#2B6CB0">3</span> · Tokenize</h3><p class="ct-s">Pick a max length that never cuts an answer. <i>§4</i></p></div>
+<div class="card" style="--i:3"><h3><span style="color:#2B6CB0">4</span> · 4-bit load</h3><p class="ct-s">NF4 quantization of the frozen base. <i>§5</i></p></div>
+<div class="card" style="--i:4"><h3><span style="color:#2B6CB0">5</span> · LoRA</h3><p class="ct-s">r = 16 adapters on attention + MLP. <i>§6</i></p></div>
+<div class="card" style="--i:5"><h3><span style="color:#2B6CB0">6</span> · Baseline</h3><p class="ct-s">Score the 35 test tickets before training. <i>§7</i></p></div>
+<div class="card hot" style="--i:6"><h3><span style="color:#2B6CB0">7</span> · Train</h3><p class="ct-s">SFTTrainer, 3 epochs, ~51 steps. <i>§8</i></p></div>
+<div class="card" style="--i:7"><h3><span style="color:#2B6CB0">8</span> · Prove and save</h3><p class="ct-s">Re-score, compare, save adapter and merged model. <i>§9–10</i></p></div>
+</div>
+<p class="rule">Step 7 is one line of code. Everything else is data, formatting and evaluation.</p>
+<aside>The whole notebook on one slide, with section numbers so students can find their place. Point out that training is one step of eight, mirroring the nine-stage lifecycle from the theory session.</aside>
+</section>
+<section id="lab-memory" class="alt">
+<div class="head">
+<p class="eyebrow">Lab · Why QLoRA fits a free GPU</p>
+<h2>Training memory is mostly not the weights</h2>
+</div>
+<table class="tbl">
+<tr class="hd"><th style="width:40%">For a 1.5B model</th><th style="width:30%">Full fine-tune (fp16)</th><th style="width:30%">QLoRA (this lab)</th></tr>
+<tr><td>Base weights</td><td>~3 GB</td><td>~1 GB (4-bit)</td></tr>
+<tr><td>Gradients + optimizer state</td><td>~12 GB+</td><td>tens of MB (LoRA only)</td></tr>
+<tr><td>Activations</td><td>high</td><td>lower (gradient checkpointing)</td></tr>
+<tr class="band"><td>Fits a 15 GB T4?</td><td>No, too tight</td><td>Yes, about 6–8 GB</td></tr>
+</table>
+<div class="grid4">
+<div class="card tight" style="--i:0"><p class="ct-s"><b>4-bit base</b>: ~4× smaller</p></div>
+<div class="card tight" style="--i:1"><p class="ct-s"><b>Frozen</b>: no optimizer state for it</p></div>
+<div class="card tight" style="--i:2"><p class="ct-s"><b>LoRA</b>: gradients for ~2% of weights</p></div>
+<div class="card tight" style="--i:3"><p class="ct-s"><b>Checkpointing</b>: recompute, don’t store</p></div>
+</div>
+<aside>Adam keeps two extra numbers per weight, so optimizer state dominates training memory. QLoRA attacks every row of the table. Our 0.5B default has even more headroom; the 1.5B numbers show you can scale up on the same free GPU. On a T4 use fp16; on Ampere or newer GPUs use bf16.</aside>
+</section>
+<section id="lab-knobs">
+<div class="head">
+<p class="eyebrow">Lab · The settings that matter</p>
+<h2>Every knob, and why it’s set that way</h2>
+</div>
+<table class="tbl-s">
+<tr class="hd"><th style="width:30%">Setting</th><th style="width:20%">Value</th><th style="width:50%">Why</th></tr>
+<tr><td>LoRA rank r</td><td>16</td><td>Enough capacity for one narrow task</td></tr>
+<tr><td>lora_alpha</td><td>32</td><td>Strength = alpha / r = 2, the common rule</td></tr>
+<tr><td>target_modules</td><td>attention + MLP</td><td>Beats attention-only; the modern default</td></tr>
+<tr><td>learning_rate</td><td>2e-4</td><td>LoRA’s sweet spot is 1e-4 to 3e-4</td></tr>
+<tr><td>epochs</td><td>3</td><td>Small data: a few passes; watch eval loss</td></tr>
+<tr class="band"><td>batch × accumulation</td><td>2 × 8 = 16</td><td>Big effective batch, small memory footprint</td></tr>
+<tr><td>max_seq_length</td><td>1024</td><td>Well above the longest example: nothing truncated</td></tr>
+<tr><td>precision, optimizer</td><td>fp16, paged 8-bit AdamW</td><td>T4 has no fast bf16; tiny optimizer memory</td></tr>
+</table>
+<p class="rule">Out of memory? Raise accumulation, not batch size. Accumulation costs almost no memory.</p>
+<aside>Slow down here. The effective batch is per-device batch times accumulation times number of GPUs. If students hit OOM: first lower max_seq_length, then batch 1 with accumulation 16. On Ampere or newer, switch fp16 to bf16.</aside>
+</section>
+<section id="lab-results" class="dark">
+<div class="head">
+<p class="eyebrow">Lab · Results (Colab T4 run, 35 held-out tickets)</p>
+<h2>Same model, same test, after four minutes of training</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="tag">Valid JSON</p><p class="small">before 94%</p><p class="big" style="color:#F7F5EF">100%</p><p class="ct-s">Target 100%: met</p></div>
+<div class="card" style="--i:1"><p class="tag">Category accuracy</p><p class="small">before 23%</p><p class="big" style="color:#F7F5EF">100%</p><p class="ct-s">Target ≥ 90%: met</p></div>
+<div class="card" style="--i:2"><p class="tag">Priority accuracy</p><p class="small">before 40%</p><p class="big" style="color:#F7F5EF">94%</p><p class="ct-s">Target ≥ 85%: met</p></div>
+</div>
+<p class="rule">Training loss 2.13 → 0.12 and eval loss 0.53 → 0.10, in 4 minutes: falling, finite and no overfitting.</p>
+<aside>Verified on a free Colab T4 (Python 3.13, CUDA 13): before 0.943 / 0.229 / 0.400, after 1.0 / 1.0 / 0.943, training 51 steps in 4:03. An earlier local run gave 0.971 / 0.314 / 0.371 before and 1.0 / 1.0 / 0.886 after, so priority lands between 89% and 94%. Let the jump from 23% to 100% sink in, then ask why priority still lags.</aside>
+</section>
+<section id="lab-lessons">
+<div class="head">
+<p class="eyebrow">Lab · What the results teach</p>
+<h2>Why priority lags, and what to fix next</h2>
+</div>
+<div class="grid3">
+<div class="card what" style="--i:0"><p class="tag b">Learned first</p><h3>Format</h3><p class="ct-s">Valid JSON goes to 100% almost immediately. Format is the easiest habit to install.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">Learned fully</p><h3>Categories</h3><p class="ct-s">Six balanced labels, about 45–50 training examples each: 100% on held-out tickets.</p></div>
+<div class="card why" style="--i:2"><p class="tag o">Still lagging</p><h3>Priority</h3><p class="ct-s">High vs Urgent is a judgement call, and only <b>21 of 281</b> training tickets were Urgent.</p></div>
+</div>
+<p class="rule">The next fix is more, better-balanced priority data, not more epochs. Diagnose with the data before you touch the training settings.</p>
+<p class="analogy">Lifecycle stage 9 in action: the misclassified tickets tell you exactly which examples to add.</p>
+<aside>This is the honest-evaluation payoff. Training data had High 105, Low 102, Medium 53, Urgent 21. More epochs would mostly memorize the few Urgent examples. Ask the room: how would you collect more Urgent tickets, and how would you check they're labelled consistently?</aside>
+</section>
+<section id="synthesis" class="alt">
+<div class="head">
+<p class="eyebrow">9 · Synthesis</p>
+<h2>The whole kitchen in five lines</h2>
+</div>
+<div class="stack">
+<div class="card tight" style="--i:0"><p class="ct"><b>Pretraining</b> is culinary school: broad, instinctive, generic, frozen in time.</p></div>
+<div class="card tight" style="--i:1"><p class="ct"><b>Prompting</b> is the order ticket: cheapest and fastest. Always try it first.</p></div>
+<div class="card tight" style="--i:2"><p class="ct"><b>RAG</b> is the recipe binder: fresh and private facts without retraining.</p></div>
+<div class="card tight hot" style="--i:3"><p class="ct"><b>Fine-tuning</b> is the apprenticeship: reshapes instincts for style, format and skill. Wrong tool for changing facts.</p></div>
+<div class="card tight" style="--i:4"><p class="ct"><b>Techniques are a cost ladder</b>: start with SFT via QLoRA or LoRA, full fine-tuning for deep shifts, DPO or RLHF for taste.</p></div>
+</div>
+<aside>The Monday-meeting takeaway. Judgment beats technique. Each line maps to a section of the session and to one decision in the lab.</aside>
+</section>
+<section id="cp6" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 6 · Synthesis</p>
+</div>
+<p class="question">In one line each: when do you reach for prompting, RAG and fine-tuning? And what’s the one phrase for the whole decision?</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans"><b>Prompting</b> when a better instruction can steer what the model already does. <b>RAG</b> when the gap is missing or changing knowledge at answer time. <b>Fine-tuning</b> when you need consistent behaviour, style, format or skill baked in, with clean examples and an honest evaluation.</p>
+<p class="ans" style="color:#F7F5EF"><b>“Fine-tune the craft, retrieve the facts, prompt the moment, and use the cheapest tool that solves the problem.”</b></p>
+</div>
+<aside>The synthesis check. End on the one phrase, and have the room say it back.</aside>
+</section>
+<section id="close" class="dark center">
+<p class="eyebrow">Open floor</p>
+<h1>What’s nagging at you?</h1>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="tag">Try next</p><p class="ct-s">Swap in your own JSONL (same four keys) and re-run the notebook.</p></div>
+<div class="card" style="--i:1"><p class="tag">Experiment</p><p class="ct-s">Balance the priorities, sweep r, or try a 1.5B model on the same T4.</p></div>
+<div class="card" style="--i:2"><p class="tag">Read</p><p class="ct-s">Full narration and a 10-question Q&amp;A in finetuning-llms-teaching-script.md.</p></div>
+</div>
+<aside>Open the floor. Point students to the next experiments: their own data, balanced priorities, an r sweep, or a bigger model. The full narration and Q and A appendix live in the teaching script markdown file.</aside>
+</section>
+</div></div>
+<div id="progress"></div>
+<nav id="menu" aria-label="Slides"><p class="menu-group">Framing</p><button data-go="0"><span>1</span> Fine-Tuning Large Language Models</button><button data-go="1"><span>2</span> Every concept answers three questions</button><button data-go="2"><span>3</span> Two sessions: decide, then build</button><button data-go="3"><span>4</span> One chef, four very different moves</button><p class="menu-group">History and pretraining</p><button data-go="4"><span>5</span> How we got the base model</button><button data-go="5"><span>6</span> Pretraining is next-token prediction at scale</button><button data-go="6"><span>7</span> Same weights at birth, different habits</button><button data-go="7"><span>8</span> cp1</button><p class="menu-group">Motivation</p><button data-go="8"><span>9</span> Why fine-tuning exists: three reasons</button><button data-go="9"><span>10</span> Three knobs, three different jobs</button><button data-go="10"><span>11</span> From cheapest to most permanent</button><button data-go="11"><span>12</span> Five questions before you fine-tune</button><button data-go="12"><span>13</span> cp2</button><p class="menu-group">The lifecycle</p><button data-go="13"><span>14</span> Training is only one of nine stages</button><button data-go="14"><span>15</span> Define, curate, choose the chef</button><button data-go="15"><span>16</span> Approach, train, evaluate</button><button data-go="16"><span>17</span> Deploy, monitor, iterate</button><button data-go="17"><span>18</span> cp3</button><p class="menu-group">Break</p><button data-go="18"><span>19</span> Break</button><p class="menu-group">Taxonomy</p><button data-go="19"><span>20</span> Two questions sort every technique</button><button data-go="20"><span>21</span> Full fine-tuning</button><button data-go="21"><span>22</span> LoRA: low-rank adaptation</button><button data-go="22"><span>23</span> QLoRA and the adapter family</button><button data-go="23"><span>24</span> Instruction tuning and SFT</button><button data-go="24"><span>25</span> Preference tuning: RLHF and DPO</button><button data-go="25"><span>26</span> cp4</button><p class="menu-group">Needs and risks</p><button data-go="26"><span>27</span> Before you start: three honest checks</button><button data-go="27"><span>28</span> Four ways fine-tuning quietly hurts you</button><button data-go="28"><span>29</span> cp5</button><p class="menu-group">Economics and use cases</p><button data-go="29"><span>30</span> Where the money actually goes</button><button data-go="30"><span>31</span> The go / no-go checklist</button><button data-go="31"><span>32</span> Fine-tune the craft, retrieve the facts</button><p class="menu-group">Hands-on lab</p><button data-go="32"><span>33</span> Build a support-ticket triage assistant</button><button data-go="33"><span>34</span> Triage every ticket, the same way, in a format software can use</button><button data-go="34"><span>35</span> One ticket in, one JSON object out</button><button data-go="35"><span>36</span> Our decision questions, applied</button><button data-go="36"><span>37</span> Turn a model that fails into a reliable specialist</button><button data-go="37"><span>38</span> Decide what “worked” means before training</button><button data-go="38"><span>39</span> Eight steps, one notebook</button><button data-go="39"><span>40</span> Training memory is mostly not the weights</button><button data-go="40"><span>41</span> Every knob, and why it’s set that way</button><button data-go="41"><span>42</span> Same model, same test, after four minutes of training</button><button data-go="42"><span>43</span> Why priority lags, and what to fix next</button><p class="menu-group">Synthesis</p><button data-go="43"><span>44</span> The whole kitchen in five lines</button><button data-go="44"><span>45</span> cp6</button><button data-go="45"><span>46</span> What’s nagging at you?</button></nav>
+<div id="notes" aria-live="polite"></div>
+<div id="bar">
+  <button id="menuBtn" title="All slides (M)">☰ Slides</button>
+  <button id="prev" title="Previous (←)">‹</button>
+  <span id="count"></span>
+  <button id="next" title="Next (→ / Space)">›</button>
+  <button id="notesBtn" title="Speaker notes (N)">Notes</button>
+  <button id="fsBtn" title="Fullscreen (F)">⛶</button>
+  <span id="hint">→ next · ← back · N notes · F fullscreen · click a checkpoint to reveal the answer</span>
+</div>
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('#canvas > section')];
+  const canvas = document.getElementById('canvas');
+  const notes = document.getElementById('notes');
+  const menu = document.getElementById('menu');
+  let i = 0;
+
+  function fit() {
+    const vp = document.getElementById('viewport').getBoundingClientRect();
+    const s = Math.min(vp.width / 1920, vp.height / 1080);
+    canvas.style.transform = 'scale(' + s + ')';
+  }
+  const frags = s => [...s.querySelectorAll('.fragment')];
+
+  function show(n, revealAll) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    frags(slides[i]).forEach(f => f.classList.toggle('visible', !!revealAll));
+    document.getElementById('count').textContent = (i + 1) + ' / ' + slides.length;
+    document.getElementById('progress').style.width = (100 * i / (slides.length - 1)) + '%';
+    const a = slides[i].querySelector('aside');
+    notes.innerHTML = '<b>Speaker notes · slide ' + (i + 1) + '</b><br>' + (a ? a.innerHTML : '(none)');
+    menu.querySelectorAll('button').forEach(b => b.classList.toggle('here', +b.dataset.go === i));
+    history.replaceState(null, '', '#' + (i + 1));
+  }
+  function next() {
+    const hidden = frags(slides[i]).filter(f => !f.classList.contains('visible'));
+    if (hidden.length) hidden[0].classList.add('visible'); else show(i + 1);
+  }
+  function prev() {
+    const shown = frags(slides[i]).filter(f => f.classList.contains('visible'));
+    if (shown.length) shown[shown.length - 1].classList.remove('visible'); else show(i - 1, true);
+  }
+  const fs = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+
+  document.getElementById('next').onclick = next;
+  document.getElementById('prev').onclick = prev;
+  document.getElementById('notesBtn').onclick = () => notes.classList.toggle('show');
+  document.getElementById('menuBtn').onclick = () => menu.classList.toggle('show');
+  document.getElementById('fsBtn').onclick = fs;
+  menu.onclick = e => { const b = e.target.closest('button'); if (b) { show(+b.dataset.go); menu.classList.remove('show'); } };
+  document.getElementById('viewport').onclick = () => { if (menu.classList.contains('show')) menu.classList.remove('show'); else next(); };
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key.toLowerCase() === 'n') notes.classList.toggle('show');
+    else if (e.key.toLowerCase() === 'm') menu.classList.toggle('show');
+    else if (e.key.toLowerCase() === 'f') fs();
+    else if (e.key === 'Escape') { menu.classList.remove('show'); notes.classList.remove('show'); }
+  });
+  // Swipe on touch screens.
+  let x0 = null;
+  addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', e => {
+    if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+  });
+  addEventListener('resize', fit);
+  addEventListener('hashchange', () => show((parseInt(location.hash.slice(1), 10) || 1) - 1));
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

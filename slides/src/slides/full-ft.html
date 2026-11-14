@@ -1,0 +1,14 @@
+<section id="full-ft">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · A</p>
+<h2>Full fine-tuning</h2>
+</div>
+<div class="grid3">
+<div class="card why" style="--i:0"><p class="tag o">Why</p><p class="ct-s">Maximum control. For deep changes of domain, language or behaviour, when you have lots of data and budget.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">What</p><p class="ct-s">Update <b>every</b> weight: all billions are free to change.</p></div>
+<div class="card how" style="--i:2"><p class="tag">How to think about it</p><p class="ct-s">Needs a big dataset and GPU memory of <b>many times the model size</b> (weights + gradients + optimizer state), plus a full model copy per task. Highest risk of catastrophic forgetting.</p></div>
+</div>
+<p class="rule">Most teams don’t need this. Reach for it only when LoRA has clearly hit its ceiling.</p>
+<p class="analogy">Retrain every instinct the chef has, from knife grip to plating. Total transformation, total cost.</p>
+<aside>All weights move. Most powerful, most expensive, highest forgetting risk. Reserve for deep domain shifts with ample data and budget. In the lab's memory table, full fine-tuning of even a 1.5B model doesn't fit a free T4.</aside>
+</section>

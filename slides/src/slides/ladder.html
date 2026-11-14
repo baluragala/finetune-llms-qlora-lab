@@ -1,0 +1,12 @@
+<section id="ladder" class="alt">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · The map</p>
+<h2>Two questions sort every technique</h2>
+</div>
+<div class="grid2">
+<div class="card what" style="--i:0"><p class="tag b">Question 1 · How many weights move?</p><h3>The cost axis</h3><p class="ct-s"><b>Full fine-tuning</b>: every weight. <b>LoRA</b>: small add-on matrices, base frozen. <b>QLoRA</b>: LoRA on a 4-bit compressed base, the cheapest of all.</p></div>
+<div class="card why" style="--i:1"><p class="tag o">Question 2 · What signal teaches it?</p><h3>The goal axis</h3><p class="ct-s"><b>SFT</b>: examples of the right answer (input → ideal output). <b>RLHF / DPO</b>: preferences between two answers (A is better than B).</p></div>
+</div>
+<p class="rule">They combine: you usually do SFT <i>via</i> LoRA or QLoRA. The lab is exactly that, SFT delivered through QLoRA.</p>
+<aside>A new framing slide before the details. Students often treat LoRA and SFT as alternatives. They answer different questions: LoRA is how many weights move, SFT is what signal you train on. Every technique on the next slides sits somewhere on these two axes.</aside>
+</section>

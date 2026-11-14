@@ -1,0 +1,13 @@
+<section id="lab-results" class="dark">
+<div class="head">
+<p class="eyebrow">Lab · Results (Colab T4 run, 35 held-out tickets)</p>
+<h2>Same model, same test, after four minutes of training</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="tag">Valid JSON</p><p class="small">before 94%</p><p class="big" style="color:#F7F5EF">100%</p><p class="ct-s">Target 100%: met</p></div>
+<div class="card" style="--i:1"><p class="tag">Category accuracy</p><p class="small">before 23%</p><p class="big" style="color:#F7F5EF">100%</p><p class="ct-s">Target ≥ 90%: met</p></div>
+<div class="card" style="--i:2"><p class="tag">Priority accuracy</p><p class="small">before 40%</p><p class="big" style="color:#F7F5EF">94%</p><p class="ct-s">Target ≥ 85%: met</p></div>
+</div>
+<p class="rule">Training loss 2.13 → 0.12 and eval loss 0.53 → 0.10, in 4 minutes: falling, finite and no overfitting.</p>
+<aside>Verified on a free Colab T4 (Python 3.13, CUDA 13): before 0.943 / 0.229 / 0.400, after 1.0 / 1.0 / 0.943, training 51 steps in 4:03. An earlier local run gave 0.971 / 0.314 / 0.371 before and 1.0 / 1.0 / 0.886 after, so priority lands between 89% and 94%. Let the jump from 23% to 100% sink in, then ask why priority still lags.</aside>
+</section>

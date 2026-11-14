@@ -1,0 +1,15 @@
+<section id="history">
+<div class="head">
+<p class="eyebrow">2 · History</p>
+<h2>How we got the base model</h2>
+</div>
+<table class="tbl-s">
+<tr class="hd"><th style="width:24%">Step</th><th style="width:44%">What it solved</th><th style="width:32%">Still missing</th></tr>
+<tr><td>2013 · Word embeddings</td><td>Meaning from the company a word keeps</td><td>Static: “bank” has one vector</td></tr>
+<tr><td>RNNs / LSTMs</td><td>Context: words read in order</td><td>Slow and forgetful</td></tr>
+<tr class="band"><td>2017 · Transformer</td><td>Self-attention: every word sees every other, in parallel</td><td>Nothing structural: it unlocked <b>scale</b></td></tr>
+<tr><td>Two families</td><td>Encoders (BERT) understand; decoders (GPT) generate</td><td>“LLM” today = decoder</td></tr>
+</table>
+<p class="analogy">A Transformer reads the whole order ticket at once and sees how the parts relate, instead of reading word by word and forgetting the top by the bottom.</p>
+<aside>History is load-bearing: every later decision (data needs, forgetting, why a tiny LoRA works) is downstream of understanding pretraining. Keep it brisk; the Transformer row is the one to land.</aside>
+</section>

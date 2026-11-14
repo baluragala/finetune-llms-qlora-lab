@@ -1,0 +1,23 @@
+<section id="lab-goal">
+<div class="head">
+<p class="eyebrow">Lab · Goal and objectives</p>
+<h2>Turn a model that fails into a reliable specialist</h2>
+</div>
+<div class="row">
+<div class="card hot" style="width:560px;--i:0"><p class="tag b">Goal</p><p class="ct">Take a small instruct model that <b>fails</b> at triage and, with QLoRA on a free T4 in minutes, make it <b>reliably</b> emit correct, schema-valid JSON. Then <b>prove</b> it on tickets it never saw.</p></div>
+<div class="grow">
+<p class="tag">By the end you can…</p>
+<ol class="ct">
+<li>Explain base vs instruct, and why we start from instruct</li>
+<li>Design a dataset: schema first, balanced labels, train / val / test</li>
+<li>Format examples with the chat template, without truncating answers</li>
+<li>Load a model in 4-bit and attach LoRA, knowing every setting</li>
+<li>Run SFTTrainer within T4 memory limits</li>
+<li>Read a loss curve: healthy, overfitting or broken</li>
+<li>Evaluate before vs after with task metrics, not just loss</li>
+<li>Save, merge and run the fine-tuned model</li>
+</ol>
+</div>
+</div>
+<aside>These match the learning objectives at the top of the notebook, one per notebook section. Read the goal out loud; the objectives are for students to tick off.</aside>
+</section>

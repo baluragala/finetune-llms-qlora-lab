@@ -1,0 +1,15 @@
+<section id="risks" class="alt">
+<div class="head">
+<p class="eyebrow">6 · Key risks and mitigations</p>
+<h2>Four ways fine-tuning quietly hurts you</h2>
+</div>
+<table class="tbl-s">
+<tr class="hd"><th style="width:22%">Risk</th><th style="width:32%">What happens</th><th style="width:46%">Mitigation</th></tr>
+<tr><td>Catastrophic forgetting</td><td>The narrow task overwrites general skills</td><td>LoRA (frozen base), low learning rate and few epochs, mix in general data, run a regression test</td></tr>
+<tr><td>Overfitting</td><td>Memorizes examples; brittle on new ones</td><td>Stop when validation loss rises, add diversity, prefer LoRA</td></tr>
+<tr><td>Data leakage</td><td>Test examples bleed into training; personal data gets memorized</td><td>Strict de-duplicated splits, scrub PII, test for regurgitation</td></tr>
+<tr><td>Alignment regression</td><td>Safety and tone guardrails erode</td><td>Mix in safety data, red-team before and after, gate the release on it</td></tr>
+</table>
+<p class="rule">Freezing the base with LoRA mitigates several of these at once. That is a structural choice, not a training trick.</p>
+<aside>Forgetting, overfitting, leakage, alignment regression, each with a structural mitigation. Kitchen versions: the pastry obsessive who forgot how to grill; the cook who freezes on the eleventh plate; practising only the exam dish; dropping hygiene for speed.</aside>
+</section>

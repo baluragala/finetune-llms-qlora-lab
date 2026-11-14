@@ -1,0 +1,22 @@
+<section id="checklist" class="alt">
+<div class="head">
+<p class="eyebrow">7 · Should we fine-tune?</p>
+<h2>The go / no-go checklist</h2>
+</div>
+<div class="grid2">
+<div class="stack">
+<div class="card tight hot" style="--i:0"><p class="ct-s"><b>1.</b> Prompting and RAG were tried and are genuinely not enough. <i>(The most skipped.)</i></p></div>
+<div class="card tight hot" style="--i:1"><p class="ct-s"><b>2.</b> The problem is behaviour, style, format or skill, not changing facts.</p></div>
+<div class="card tight" style="--i:2"><p class="ct-s"><b>3.</b> You have, or can create, a few hundred clean, consistent examples.</p></div>
+<div class="card tight" style="--i:3"><p class="ct-s"><b>4.</b> The task is stable enough not to be obsolete in weeks.</p></div>
+</div>
+<div class="stack">
+<div class="card tight" style="--i:4"><p class="ct-s"><b>5.</b> Volume is high enough to justify the upfront and maintenance cost.</p></div>
+<div class="card tight hot" style="--i:5"><p class="ct-s"><b>6.</b> You can evaluate honestly: held-out set, metric, baseline.</p></div>
+<div class="card tight" style="--i:6"><p class="ct-s"><b>7.</b> You have the skills and budget for curation, training and monitoring.</p></div>
+<div class="card tight" style="--i:7"><p class="ct-s"><b>8.</b> You have a plan for the four risks.</p></div>
+</div>
+</div>
+<p class="rule">A “no” on 1, 2 or 6 (highlighted) means you’re not ready.</p>
+<aside>You want mostly yes before committing. No on 1, 2 or 6 means not ready; that's the framework doing its job. Run the lab problem through it: a carefully prompted instruct model got only 31% category accuracy, so prompting is genuinely not enough (1 is yes); labels and format are behaviour (2 is yes); and we have a held-out test set with a baseline (6 is yes).</aside>
+</section>

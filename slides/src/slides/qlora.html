@@ -1,0 +1,14 @@
+<section id="qlora">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · B continued</p>
+<h2>QLoRA and the adapter family</h2>
+</div>
+<div class="grid3">
+<div class="card why" style="--i:0"><p class="tag o">Why</p><p class="ct-s">Even a frozen base must sit in GPU memory. At 16 bits, big models don’t fit on one modest GPU.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">What</p><p class="ct-s"><b>Quantize</b> the frozen base to 4-bit (NF4), about <b>4× less memory</b>, then train LoRA adapters on top in 16-bit. The adapters absorb most of the precision loss.</p></div>
+<div class="card how" style="--i:2"><p class="tag">How</p><p class="ct-s">Load with a 4-bit config, freeze, add LoRA, turn on gradient checkpointing. The pragmatic default on a single GPU, and what the lab runs on a free T4.</p></div>
+</div>
+<p class="ct-s"><b>Adapters in general</b>: small trainable modules inserted into a frozen network. LoRA is the most popular kind. Their value is modularity: one base, many swappable skills.</p>
+<p class="analogy">QLoRA: coach the apprentice against a compressed reference copy of the master chef. Slightly lower fidelity, far less room needed.</p>
+<aside>QLoRA = quantize the frozen base to 4-bit, then LoRA on top. It democratized fine-tuning: big models on one modest GPU. NF4 is a 4-bit format shaped like the bell curve of real weights, so it loses less than plain int4. Adapters are the general modular family.</aside>
+</section>

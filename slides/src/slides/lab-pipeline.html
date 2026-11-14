@@ -1,0 +1,18 @@
+<section id="lab-pipeline">
+<div class="head">
+<p class="eyebrow">Lab · The pipeline</p>
+<h2>Eight steps, one notebook</h2>
+</div>
+<div class="grid4">
+<div class="card" style="--i:0"><h3><span style="color:#2B6CB0">1</span> · Data</h3><p class="ct-s">351 synthetic tickets, split 281 / 35 / 35. <i>§2</i></p></div>
+<div class="card" style="--i:1"><h3><span style="color:#2B6CB0">2</span> · Chat template</h3><p class="ct-s">System rules + ticket + target JSON. <i>§3</i></p></div>
+<div class="card" style="--i:2"><h3><span style="color:#2B6CB0">3</span> · Tokenize</h3><p class="ct-s">Pick a max length that never cuts an answer. <i>§4</i></p></div>
+<div class="card" style="--i:3"><h3><span style="color:#2B6CB0">4</span> · 4-bit load</h3><p class="ct-s">NF4 quantization of the frozen base. <i>§5</i></p></div>
+<div class="card" style="--i:4"><h3><span style="color:#2B6CB0">5</span> · LoRA</h3><p class="ct-s">r = 16 adapters on attention + MLP. <i>§6</i></p></div>
+<div class="card" style="--i:5"><h3><span style="color:#2B6CB0">6</span> · Baseline</h3><p class="ct-s">Score the 35 test tickets before training. <i>§7</i></p></div>
+<div class="card hot" style="--i:6"><h3><span style="color:#2B6CB0">7</span> · Train</h3><p class="ct-s">SFTTrainer, 3 epochs, ~51 steps. <i>§8</i></p></div>
+<div class="card" style="--i:7"><h3><span style="color:#2B6CB0">8</span> · Prove and save</h3><p class="ct-s">Re-score, compare, save adapter and merged model. <i>§9–10</i></p></div>
+</div>
+<p class="rule">Step 7 is one line of code. Everything else is data, formatting and evaluation.</p>
+<aside>The whole notebook on one slide, with section numbers so students can find their place. Point out that training is one step of eight, mirroring the nine-stage lifecycle from the theory session.</aside>
+</section>

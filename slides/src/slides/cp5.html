@@ -1,0 +1,11 @@
+<section id="cp5" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 5 · The silent risk</p>
+</div>
+<p class="question">Name the risk where a narrow fine-tune quietly undoes general ability. Give two mitigations, at least one of them structural (about which approach you pick).</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans"><b>Catastrophic forgetting.</b> Structural: use <b>LoRA / PEFT</b>. With the base frozen, general skills are physically untouched. Plus any of: train conservatively (lower learning rate, fewer epochs), mix in general data, and always run a <b>general-capability regression test</b> so you catch forgetting before you ship.</p>
+</div>
+<aside>Catastrophic forgetting. The structural mitigation is PEFT or LoRA with a frozen base, plus conservative training and a regression test. Don't let the narrow task overwrite broad competence, and measure to be sure.</aside>
+</section>

@@ -1,0 +1,20 @@
+<section id="lab-memory" class="alt">
+<div class="head">
+<p class="eyebrow">Lab · Why QLoRA fits a free GPU</p>
+<h2>Training memory is mostly not the weights</h2>
+</div>
+<table class="tbl">
+<tr class="hd"><th style="width:40%">For a 1.5B model</th><th style="width:30%">Full fine-tune (fp16)</th><th style="width:30%">QLoRA (this lab)</th></tr>
+<tr><td>Base weights</td><td>~3 GB</td><td>~1 GB (4-bit)</td></tr>
+<tr><td>Gradients + optimizer state</td><td>~12 GB+</td><td>tens of MB (LoRA only)</td></tr>
+<tr><td>Activations</td><td>high</td><td>lower (gradient checkpointing)</td></tr>
+<tr class="band"><td>Fits a 15 GB T4?</td><td>No, too tight</td><td>Yes, about 6–8 GB</td></tr>
+</table>
+<div class="grid4">
+<div class="card tight" style="--i:0"><p class="ct-s"><b>4-bit base</b>: ~4× smaller</p></div>
+<div class="card tight" style="--i:1"><p class="ct-s"><b>Frozen</b>: no optimizer state for it</p></div>
+<div class="card tight" style="--i:2"><p class="ct-s"><b>LoRA</b>: gradients for ~2% of weights</p></div>
+<div class="card tight" style="--i:3"><p class="ct-s"><b>Checkpointing</b>: recompute, don’t store</p></div>
+</div>
+<aside>Adam keeps two extra numbers per weight, so optimizer state dominates training memory. QLoRA attacks every row of the table. Our 0.5B default has even more headroom; the 1.5B numbers show you can scale up on the same free GPU. On a T4 use fp16; on Ampere or newer GPUs use bf16.</aside>
+</section>

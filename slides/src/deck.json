@@ -1,0 +1,39 @@
+{
+  "v": 5,
+  "createdOnFiles": {"v": 1, "at": "2026-11-14T10:00:00Z"},
+  "lists": "css",
+  "format": {"v": 1, "shared": ["project/deck.css"]},
+  "title": "Fine-Tuning LLMs V2",
+  "cover": "cover",
+  "order": [
+    "cover", "howto", "agenda", "tools",
+    "history", "pretrain", "base-instruct", "cp1",
+    "why-ft", "three-knobs", "decision-table", "decision-qs", "cp2",
+    "lifecycle", "stages13", "stages46", "stages79", "cp3",
+    "break",
+    "ladder", "full-ft", "lora", "qlora", "sft", "pref", "cp4",
+    "needs", "risks", "cp5",
+    "economics", "checklist", "industries",
+    "lab-intro", "lab-problem", "lab-usecase", "lab-why", "lab-goal", "lab-success",
+    "lab-pipeline", "lab-memory", "lab-knobs", "lab-results", "lab-lessons",
+    "synthesis", "cp6", "close"
+  ],
+  "sections": {
+    "s1": {"description": "Framing: how the deck works, the agenda, and the four tools for changing a model.", "start": "cover"},
+    "s2": {"description": "History and pretraining: where the base model comes from, and why it knows a lot but obeys nothing.", "start": "history"},
+    "s3": {"description": "Motivation: why fine-tuning exists and how to decide between prompting, RAG and fine-tuning.", "start": "why-ft"},
+    "s4": {"description": "The lifecycle: training is only one of nine stages.", "start": "lifecycle"},
+    "s5": {"description": "Break.", "start": "break"},
+    "s6": {"description": "Taxonomy: full fine-tuning, LoRA, QLoRA, SFT, and preference tuning.", "start": "ladder"},
+    "s7": {"description": "Needs and risks: what you need before you start and four ways fine-tuning quietly hurts you.", "start": "needs"},
+    "s8": {"description": "Economics and use cases: where the money goes, the go/no-go checklist, and industry patterns.", "start": "economics"},
+    "s9": {"description": "Hands-on lab: fine-tune a support-ticket triage assistant with QLoRA on a free T4.", "start": "lab-intro"},
+    "s10": {"description": "Synthesis: the whole decision in five lines.", "start": "synthesis"}
+  },
+  "faces": {
+    "space-grotesk": {"family": "Space Grotesk", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500..700&display=swap"},
+    "ibm-plex-sans": {"family": "IBM Plex Sans", "href": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap"},
+    "jetbrains-mono": {"family": "JetBrains Mono", "href": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap"}
+  },
+  "designSystems": []
+}

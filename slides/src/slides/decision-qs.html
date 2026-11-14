@@ -1,0 +1,14 @@
+<section id="decision-qs" class="alt">
+<div class="head">
+<p class="eyebrow">3 · Ask in order, stop at the first yes</p>
+<h2>Five questions before you fine-tune</h2>
+</div>
+<div class="stack">
+<div class="card tight" style="--i:0"><p class="ct"><b>1. Can a better prompt fix it?</b> It’s free and fast. Always try it first.</p></div>
+<div class="card tight" style="--i:1"><p class="ct"><b>2. Is knowledge missing or changing?</b> Use RAG. Never fine-tune facts that change.</p></div>
+<div class="card hot tight" style="--i:2"><p class="ct"><b>3. Do you need consistent behaviour, style, format or skill, and have examples of “right”?</b> Fine-tune. This is its home turf.</p></div>
+<div class="card tight" style="--i:3"><p class="ct"><b>4. Is it a fixed task at high volume where cost or latency hurts?</b> Fine-tune a smaller model.</p></div>
+<div class="card tight" style="--i:4"><p class="ct"><b>5. More than one of the above?</b> Combine: fine-tune for voice and format, RAG for facts.</p></div>
+</div>
+<aside>Stop at the first yes. Question 1 honestly kills most fine-tuning requests. Our lab problem passes question 3: consistent labels and a strict format, with clear right answers.</aside>
+</section>

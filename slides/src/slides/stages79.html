@@ -1,0 +1,13 @@
+<section id="stages79">
+<div class="head">
+<p class="eyebrow">4 · Stages 7–9</p>
+<h2>Deploy, monitor, iterate</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="step">7</p><h3>Deployment</h3><p class="ct-s">Behind a flag, rolled out gradually, with instant rollback. LoRA adapters are small and hot-swappable, so rollback is “detach the adapter”.</p></div>
+<div class="card" style="--i:1"><p class="step">8</p><h3>Monitoring and drift</h3><p class="ct-s">Live quality, user signals, <b>distribution drift</b>. A model frozen in time quietly decays as the world moves.</p></div>
+<div class="card" style="--i:2"><p class="step">9</p><h3>Iteration</h3><p class="ct-s">It’s a loop. Failure cases are your <b>highest-quality</b> new training data: add them, retrain, re-evaluate, redeploy.</p></div>
+</div>
+<p class="analogy">In the lab: we save both a ~35 MB adapter and a merged ~1 GB model, and the misclassified tickets show exactly what data to add next.</p>
+<aside>Ship behind a flag and roll back fast; LoRA shines here. Monitor for drift. Failures are your best future training data. In the lab the priority misses on Urgent tickets are precisely that.</aside>
+</section>

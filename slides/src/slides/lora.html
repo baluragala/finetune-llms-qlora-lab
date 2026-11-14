@@ -1,0 +1,13 @@
+<section id="lora">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · B · PEFT</p>
+<h2>LoRA: low-rank adaptation</h2>
+</div>
+<div class="grid3">
+<div class="card why" style="--i:0"><p class="tag o">Why</p><p class="ct-s">You don’t need to move every weight to change behaviour a lot. The change a narrow task needs is small compared with the model.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">What</p><p class="ct-s"><b>Freeze</b> the base. Beside each big weight matrix, add two skinny ones, <span class="mono">ΔW ≈ B·A</span>, and train only those. A 10,000×10,000 change (100M numbers) becomes 10,000×8 + 8×10,000 (160K numbers).</p></div>
+<div class="card how" style="--i:2"><p class="tag">How</p><p class="ct-s">Pick the rank <span class="mono">r</span> (8–16 for narrow tasks), the strength <span class="mono">alpha</span> (≈ 2×r), and which layers get adapters (attention + MLP). Trains roughly 0.1–2% of the parameters.</p></div>
+</div>
+<p class="analogy">Don’t retrain the brain: clip targeted sticky notes onto existing skills. The chef stays intact, so forgetting is limited. The notes are small, and you can swap many sets onto one chef.</p>
+<aside>Big idea: the adaptation a task needs is low-rank. LoRA freezes the base and trains skinny matrices. The share of trainable parameters is well under 1% on big models; on our tiny 0.5B lab model it's about 2% (about 8.8M parameters), and the saved adapter is about 35 MB. Because B starts at zero, the model behaves exactly like the base at step 0, which the lab uses for a free baseline.</aside>
+</section>

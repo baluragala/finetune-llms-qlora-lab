@@ -1,0 +1,11 @@
+<section id="cp3" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 3 · Loss is not success</p>
+</div>
+<p class="question">“Training loss went down, so the fine-tune worked. Let’s ship.” What’s wrong with that, and which two checks do you demand?</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans">Falling training loss only proves the model fits the <b>training</b> examples better, which is also what memorization looks like. Demand: (1) evaluation on a <b>held-out test set</b> against the Stage-1 metric and a real baseline (the prompted base model); (2) a <b>general-capability regression check</b> to catch catastrophic forgetting. Loss is a training diagnostic, not a measure of success.</p>
+</div>
+<aside>Low training loss can be memorization. Demand a held-out evaluation against a baseline, plus a regression check. The lab does exactly this: it scores the same 35 held-out tickets before and after training.</aside>
+</section>

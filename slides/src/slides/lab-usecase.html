@@ -1,0 +1,20 @@
+<section id="lab-usecase" class="alt">
+<div class="head">
+<p class="eyebrow">Lab · Use case</p>
+<h2>One ticket in, one JSON object out</h2>
+</div>
+<div class="row">
+<div class="stack grow">
+<p class="tag o">Input: a raw ticket</p>
+<p class="code">Hi, I was charged $49 twice for my<br>Pro plan this month. Can you fix<br>this ASAP?</p>
+<p class="tag b">Output: exactly this shape</p>
+<p class="code">{"category": "Billing",<br>&#160;"priority": "High",<br>&#160;"suggested_reply": "Hi, I’m sorry about<br>&#160;&#160;the duplicate charge…"}</p>
+</div>
+<div class="stack" style="width:640px">
+<div class="card" style="--i:0"><p class="tag">category</p><p class="ct-s">Routes the ticket to the right team’s queue.</p></div>
+<div class="card" style="--i:1"><p class="tag">priority</p><p class="ct-s">Starts the right response-time clock.</p></div>
+<div class="card" style="--i:2"><p class="tag">suggested_reply</p><p class="ct-s">Pre-fills the agent’s reply box. A person still approves it.</p></div>
+</div>
+</div>
+<aside>Make it concrete: one ticket in, one object out. Each field has a consumer in the ticketing system. The model does the grunt work; a human still approves the reply.</aside>
+</section>

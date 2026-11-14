@@ -1,0 +1,13 @@
+<section id="base-instruct" class="alt">
+<div class="head">
+<p class="eyebrow">2 · Base vs instruct</p>
+<h2>Same weights at birth, different habits</h2>
+</div>
+<p class="ct">Same prompt to both: <span class="ink"><i>“Classify this ticket and reply with ONLY JSON like {"category": "..."}. Ticket: I was charged twice for my Pro plan.”</i></span></p>
+<div class="grid2">
+<div class="card why" style="--i:0"><p class="tag o">Base · Qwen2.5-0.5B</p><h3>Brilliant autocomplete</h3><p class="ct">Trained only to predict the next token. It ignores the instruction, repeats or continues the text, and doesn’t stop.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">Instruct · Qwen2.5-0.5B-Instruct</p><h3>Follows the ticket</h3><p class="ct">Further trained on instruction → response pairs. Returns clean JSON, but with its own label: <span class="mono">"Billing and Service Issues"</span>, not our <span class="mono">"Billing"</span>.</p></div>
+</div>
+<p class="rule">Instruction tuning gives format-following for free. It does not know <i>your</i> labels, scale or schema. That last gap is the job fine-tuning does.</p>
+<aside>This is the live demo from the lab notebook, section 1c. Base models ramble; instruct models obey but use their own vocabulary. That is why we always fine-tune starting from an instruct model, and why we still need to fine-tune at all.</aside>
+</section>

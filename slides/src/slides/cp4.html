@@ -1,0 +1,11 @@
+<section id="cp4" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 4 · Pick the approach</p>
+</div>
+<p class="question">Teach a company writing style from a few thousand examples, on one modest GPU, with instant rollback if customers hate it. Which approach, and what would you <i>not</i> choose?</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans"><b>SFT delivered via QLoRA</b> (or LoRA if memory allows). SFT because you have input → output style examples; QLoRA for the single-GPU budget; an adapter because it’s small and swappable, so you detach it to roll straight back. <b>Not full fine-tuning</b>: overkill, a full model copy per task, the most forgetting, heavy rollback. <b>Not RLHF/DPO yet</b>: this is a style problem with clear right answers, not a subtle preference between two good ones.</p>
+</div>
+<aside>SFT via QLoRA. The adapter gives instant rollback. Not full fine-tuning (overkill); not RLHF or DPO (this is a style problem with right answers). This is exactly the recipe the lab uses.</aside>
+</section>

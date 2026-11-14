@@ -1,0 +1,14 @@
+<section id="sft">
+<div class="head">
+<p class="eyebrow">5 · Taxonomy · C</p>
+<h2>Instruction tuning and SFT</h2>
+</div>
+<div class="grid3">
+<div class="card why" style="--i:0"><p class="tag o">Why</p><p class="ct-s">A base model has capability but not obedience: it continues text instead of following orders.</p></div>
+<div class="card what" style="--i:1"><p class="tag b">What</p><p class="ct-s"><b>Supervised fine-tuning</b> on (instruction → ideal response) pairs. SFT is the mechanism; instruction tuning is SFT aimed at following instructions in general.</p></div>
+<div class="card how" style="--i:2"><p class="tag">How</p><p class="ct-s">Format each pair in the model’s chat template, train it to predict the response, and measure on held-out pairs. In the lab: 281 (ticket → triage JSON) pairs.</p></div>
+</div>
+<p class="rule">SFT is <i>what</i> you teach; LoRA or QLoRA is <i>how</i> you teach it cheaply. Not either/or.</p>
+<p class="analogy">Teach the chef that a ticket is a command: ticket plus the correct finished plate, repeated until “make exactly that” is second nature.</p>
+<aside>SFT is the mechanism; instruction tuning teaches obedience. You usually do SFT via LoRA, not instead of it. The lab is SFT on 281 ticket-to-JSON pairs, delivered through QLoRA.</aside>
+</section>

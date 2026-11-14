@@ -1,0 +1,14 @@
+<section id="economics">
+<div class="head">
+<p class="eyebrow">7 · Economics</p>
+<h2>Where the money actually goes</h2>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="tag o">Prompting</p><h3>Free to build</h3><p class="ct-s">But a recurring cost and latency on <b>every call</b>: long instructions × millions of calls.</p></div>
+<div class="card" style="--i:1"><p class="tag o">RAG</p><h3>Cheap to keep current</h3><p class="ct-s">Modest build plus retrieval per call. Update a document, not a model.</p></div>
+<div class="card hot" style="--i:2"><p class="tag b">Fine-tuning</p><h3>Pay up front</h3><p class="ct-s">Training, serving and retraining cost money, but every call is <b>cheaper and faster</b> afterwards.</p></div>
+</div>
+<p class="rule">Fine-tuning trades upfront and maintenance cost for cheaper per-call inference. It pays off at high volume on a stable task, and loses on low-volume or fast-changing ones.</p>
+<p class="analogy">The apprenticeship pays back only if the chef cooks that style thousands of times.</p>
+<aside>Prompting: free build, recurring per-call cost. RAG: cheap to keep current. Fine-tuning: upfront plus serving plus maintenance, but cheaper per call. In the lab, a 0.5B model with a short prompt replaces a long instruction prompt on a larger model, on every ticket.</aside>
+</section>

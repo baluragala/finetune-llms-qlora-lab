@@ -1,0 +1,15 @@
+<section id="lab-why">
+<div class="head">
+<p class="eyebrow">Lab · Why fine-tune here</p>
+<h2>Our decision questions, applied</h2>
+</div>
+<table class="tbl-s">
+<tr class="hd"><th style="width:26%">Approach</th><th style="width:74%">Verdict for ticket triage</th></tr>
+<tr><td>Better prompt</td><td>Tried: a 0.5B model follows long instructions unreliably. Category accuracy 23–31%. And every call carries the long prompt.</td></tr>
+<tr><td>RAG</td><td>Adds knowledge. Our gap is behaviour (format and labelling policy). There’s nothing to look up.</td></tr>
+<tr><td>Big hosted model</td><td>Works, but costs per ticket, adds latency, and sends customer data to a third party.</td></tr>
+<tr class="band"><td>Fine-tune a small model</td><td>Bakes format and policy into the weights: short prompts, fast, cheap, private, consistent.</td></tr>
+</table>
+<p class="rule">Prompting and RAG change what the model knows at request time. Fine-tuning changes how it behaves every time. This is a behaviour problem.</p>
+<aside>Walk the decision questions on the real problem. Question 1 (better prompt) was tried and failed: 23–31% category accuracy in the baseline. Question 2 doesn't apply: no facts to fetch. Question 3 applies: consistent format and labels with clear right answers.</aside>
+</section>

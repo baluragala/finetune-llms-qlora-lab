@@ -1,0 +1,11 @@
+<section id="cp2" class="dark">
+<div class="head">
+<p class="eyebrow">Checkpoint 2 · Facts vs behaviour</p>
+</div>
+<p class="question">The support bot keeps citing last year’s refund policy. Someone proposes fine-tuning it on the new policy document. Good idea? What would you do instead?</p>
+<div class="answer fragment">
+<p class="tag">Model answer</p>
+<p class="ans"><b>Bad idea.</b> A policy is knowledge that changes: fine-tuning’s worst case. You’d pay to hard-code a fact that goes stale on the next legal update, and the model may still mix up old and new. Use <b>RAG</b>: store the current policy, fetch the relevant section at answer time. A policy change becomes a one-document edit, not a retrain. Save fine-tuning for <i>how</i> the bot answers: tone, structure, refusals.</p>
+</div>
+<aside>A classic trap. The policy is changing knowledge, so the answer is RAG. Contrast with the lab: our categories and JSON format are behaviour, which is why fine-tuning fits there.</aside>
+</section>
