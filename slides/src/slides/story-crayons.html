@@ -1,0 +1,21 @@
+<section id="story-crayons">
+<div class="head">
+<p class="eyebrow">Smart idea #2 · the Q in QLoRA</p>
+<h2>Your kitchen is tiny: make a pocket edition</h2>
+</div>
+<p class="ct">The Giant Recipe Book barely fits through the door of your café’s kitchen <i>(a free T4 GPU)</i>. So you redraw it: every number written with a <b>fancy pen</b> becomes the closest colour from a <b>box of 16 crayons</b>.</p>
+<div class="stack">
+<p class="tag">Fancy pen · 65,536 shades (16-bit)</p>
+<div style="height:56px;border-radius:12px;background:linear-gradient(90deg,#2B6CB0,#F2A766)"></div>
+<p class="tag">Crayon box · 16 colours (4-bit)</p>
+<div style="display:flex;gap:6px;height:56px">
+<div style="flex:1;border-radius:8px;background:#2B6CB0"></div><div style="flex:1;border-radius:8px;background:#3870AB"></div><div style="flex:1;border-radius:8px;background:#4674A6"></div><div style="flex:1;border-radius:8px;background:#5378A1"></div><div style="flex:1;border-radius:8px;background:#607C9C"></div><div style="flex:1;border-radius:8px;background:#6D8097"></div><div style="flex:1;border-radius:8px;background:#7B8492"></div><div style="flex:1;border-radius:8px;background:#88888D"></div><div style="flex:1;border-radius:8px;background:#958B89"></div><div style="flex:1;border-radius:8px;background:#A28F84"></div><div style="flex:1;border-radius:8px;background:#B0937F"></div><div style="flex:1;border-radius:8px;background:#BD977A"></div><div style="flex:1;border-radius:8px;background:#CA9B75"></div><div style="flex:1;border-radius:8px;background:#D79F70"></div><div style="flex:1;border-radius:8px;background:#E5A36B"></div><div style="flex:1;border-radius:8px;background:#F2A766"></div>
+</div>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="tag b">4× smaller</p><p class="ct-s">Chef Qwen’s book: <b>0.99 GB → 0.25 GB</b>. Now it fits, with room to work.</p></div>
+<div class="card" style="--i:1"><p class="tag b">Still readable</p><p class="ct-s">A little less precise, like a smaller photo. NF4 puts more crayons where most numbers are.</p></div>
+<div class="card hot" style="--i:2"><p class="tag b">Notes stay in fancy pen</p><p class="ct-s"><b>QLoRA</b> = pocket-edition book (4-bit, frozen) + sticky notes in full precision.</p></div>
+</div>
+<aside>Quantization for a ten-year-old: fewer crayons, smaller book. 16-bit means 65,536 possible values per number; 4-bit means 16. Each weight snaps to the nearest of the 16 levels. NF4 places those levels where weights cluster (a bell curve), so it loses less than evenly spaced levels would. The key insight of QLoRA: the frozen book can be low precision, because the new learning lives in the sticky notes, which stay high precision.</aside>
+</section>

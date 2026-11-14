@@ -716,6 +716,145 @@ print(f"Examples that would be truncated: {n_cut} / {len(lengths_np)}",
       "✅" if n_cut == 0 else "⚠️  raise MAX_SEQ_LEN or shorten the prompt!")""")
 
 # ───────────────────────────────────────────────────────────────────────────
+md(r"""## 🧸 Story time: LoRA and QLoRA, explained like you're 10
+
+**📍 In one line:** before the technical sections, here are the two big ideas as a story you could tell a
+10-year-old, plus a tiny demo you can run in seconds.
+
+### 📖 The premise: Chef Qwen and the Giant Recipe Book
+
+Once upon a time there was a famous chef called **Chef Qwen**. Chef Qwen could cook almost anything,
+because they had read a **Giant Recipe Book** with *half a billion* tiny notes in it, about how flavours,
+words and ideas go together. *(The book is the model's **weights**: 500 million numbers.)*
+
+You run a small café, the **Help Desk Café**. You need Chef Qwen to make **one special dish** exactly your
+way, every time: read a customer's complaint and hand back a neat card that says
+*which team · how urgent · a kind reply*. *(That's our triage JSON.)*
+
+Chef Qwen tries, and serves you *"Billing and Service Issues!"*. Close, but your café's card only has a box
+called **"Billing"**. Chef Qwen is clever but doesn't know **your café's rules**.
+
+### 😟 The problem: how do you teach the chef?
+
+**Idea 1: rewrite the whole Giant Recipe Book** *(this is **full fine-tuning**)*.
+- It's enormous: you'd need a library-sized room to work in. *(A big GPU cluster.)*
+- It takes ages and costs a fortune.
+- While rewriting, you might rub out recipes the chef already knew. *(This is called **catastrophic
+  forgetting**.)*
+
+That's far too much work just to teach one dish. There must be a smarter way…
+
+### 🟨 Smart idea #1: sticky notes (that's **LoRA**)
+
+Don't touch the book at all. **Glue it shut** *(we **freeze** the weights)*. Then put a few **sticky notes**
+on the important pages:
+
+> 📝 *"At Help Desk Café, the answer is always a card with exactly 3 boxes. Use the word 'Billing', never
+> 'Billing and Service Issues'."*
+
+- The sticky notes are **tiny** compared with the book, so they're quick and cheap to write. *(We train
+  only about 1–2% of the numbers.)*
+- The book is never damaged, so the chef **forgets nothing**.
+- If a note is wrong, **peel it off** and you're back to the original chef. *(The adapter is a separate small
+  file; detach it to roll back.)*
+- Another café can stick **its own notes** on the same book. *(One base model, many adapters.)*
+
+**But how can a tiny note change a big page?** With the **times-table trick**. A 10 × 10 times table has
+**100** numbers, yet you can rebuild every one of them from just **two lists of 10**: the row numbers and
+the column numbers. Multiply a row number by a column number and you get the cell.
+
+LoRA's sticky note is exactly that: **two skinny lists of numbers** (called **A** and **B**) whose
+"times table" (`B × A`) is a whole page of changes. The **rank `r`** is how many pairs of lists you're
+allowed. Bigger `r` means a bigger sticky note, which can describe more complicated changes.
+
+### 🖍️ Smart idea #2: the pocket edition (that's the **Q** in **QLoRA**)
+
+New problem: your café's kitchen is **tiny**. *(A free Colab T4 has about 15 GB of memory.)* The Giant
+Recipe Book barely fits through the door, and there's no space left to work.
+
+So you make a **pocket edition**. Every number in the book was written with a fancy pen that has
+**65,536 shades** of ink *(16-bit)*. You redraw the book with a **box of just 16 crayons** *(4-bit)*:
+each number becomes the closest crayon colour.
+
+- The book becomes **about 4× smaller**, and now it fits in your kitchen.
+- It's a tiny bit less precise, like a photo saved at a smaller size. You can still read every recipe.
+- The crayons aren't spread evenly: there are more crayons for the common, middle-ish values and fewer
+  for rare extreme ones. That's what **NF4** does, matching how real weights are spread out.
+- The **sticky notes are still written with the fancy pen** (16-bit), so the new learning stays precise.
+
+**QLoRA = pocket-edition book (4-bit, frozen) + fancy-pen sticky notes (LoRA).**
+
+### 🗺️ The whole story on one map
+
+| In the story | In the real lab | Where in this notebook |
+|---|---|---|
+| Chef Qwen | `Qwen2.5-0.5B-Instruct` | §3 |
+| The Giant Recipe Book | the model's ~500M weights | — |
+| Your café's special dish | the triage JSON | §2–3 |
+| Gluing the book shut | freezing the base | §5 |
+| The pocket edition, 16 crayons | 4-bit NF4 quantization | §5 |
+| Sticky notes | LoRA adapters (matrices **A** and **B**) | §6 |
+| Size of the sticky note | rank `r = 16` | §6 |
+| Practising the dish | training with `SFTTrainer` | §8 |
+| Peeling the notes off | detaching the adapter | §10 |
+
+**⚙️ How:** the cell below proves each part of the story with tiny numbers. It runs on CPU in a second
+and doesn't touch the real model.
+
+**👀 What you should see:**
+1. The times-table trick: 100 numbers rebuilt from 20.
+2. A blank sticky note changes nothing (`True`), and the note is about 3.6% of the page's size.
+3. The 16-crayon version of some numbers: close to the originals, with a small error, and 4× smaller.
+
+> **🎙 Talking track:** "Ask the room: if you had to teach a world-famous chef one new dish, would you
+> reprint their entire cookbook? No, you'd leave a sticky note. And if the cookbook didn't fit in your
+> kitchen, you'd bring the pocket edition. That's the whole of QLoRA. Everything else is detail."
+""")
+
+code(r"""# 🧸 The story, in tiny runnable code (CPU only, no model needed)
+import torch
+torch.manual_seed(0)
+
+# ── 1) The times-table trick: a big grid from two short lists ────────────────
+rows = torch.arange(1, 11).float().unsqueeze(1)   # 10 numbers (a column: 1..10)
+cols = torch.arange(1, 11).float().unsqueeze(0)   # 10 numbers (a row:    1..10)
+table = rows @ cols                                # 10 x 10 times table
+print("1) Times-table trick")
+print("   first 3 rows of the table:\n", table[:3].int())
+print(f"   numbers in the table: {table.numel()}   numbers we stored: {rows.numel() + cols.numel()}\n")
+
+# ── 2) A LoRA sticky note on ONE page of the book (one weight matrix) ───────
+d, r = 896, 16                       # Qwen2.5-0.5B's hidden size, our rank
+W = torch.randn(d, d)                # the page: frozen, never changes
+A = torch.randn(r, d) * 0.01         # sticky note, part 1 (trainable)
+B = torch.zeros(d, r)                # sticky note, part 2 (trainable), starts BLANK (all zeros)
+
+x = torch.randn(1, d)                # some input
+before = x @ W.T                     # the chef without the note
+after  = x @ W.T + (x @ A.T) @ B.T   # the chef reading the page + the note (W + B·A)
+print("2) LoRA sticky note")
+print("   blank note changes nothing?", torch.allclose(before, after))
+page, note = W.numel(), A.numel() + B.numel()
+print(f"   page: {page:,} numbers   note: {note:,} numbers   note is {100 * note / page:.1f}% of the page\n")
+
+# Pretend training wrote something on the note: now the output changes.
+B = torch.randn(d, r) * 0.01
+print("   after 'training' the note, output changed?",
+      not torch.allclose(x @ W.T, x @ W.T + (x @ A.T) @ B.T), "\n")
+
+# ── 3) The pocket edition: redraw numbers with only 16 crayons (4-bit) ───────
+w = torch.randn(8)                                       # 8 numbers from the book
+crayons = torch.linspace(w.min().item(), w.max().item(), 16)   # 16 evenly spaced 'colours'
+pocket = crayons[(w.unsqueeze(1) - crayons).abs().argmin(dim=1)]  # nearest crayon for each
+print("3) Pocket edition (16 crayons = 4-bit)")
+print("   original:", [round(v, 3) for v in w.tolist()])
+print("   crayons :", [round(v, 3) for v in pocket.tolist()])
+print(f"   average error: {(w - pocket).abs().mean():.3f}")
+params = 494_000_000                                      # roughly Qwen2.5-0.5B
+print(f"   whole book in 16-bit: {params * 2 / 1e9:.2f} GB   in 4-bit: {params * 0.5 / 1e9:.2f} GB  (4x smaller)")
+print("\n(Real NF4 places its 16 levels to match the bell-curve shape of real weights, so the error is lower.)")""")
+
+# ───────────────────────────────────────────────────────────────────────────
 md(r"""## 5 · Load the base model in 4-bit (the "Q" in QLoRA)
 
 **📍 In one line:** load the model with its weights compressed from 16 bits to 4 bits, then prepare it for

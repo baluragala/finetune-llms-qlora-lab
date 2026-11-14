@@ -1,0 +1,15 @@
+<section id="story-code" class="dark">
+<div class="head">
+<p class="eyebrow">The story in a few lines of code</p>
+<h2>A sticky note on one page</h2>
+</div>
+<div class="row">
+<p class="code grow">W = torch.randn(896, 896)&#160;&#160;&#160;&#160;# the page: frozen<br>A = torch.randn(16, 896) * 0.01&#160;&#160;# sticky note, part 1<br>B = torch.zeros(896, 16)&#160;&#160;&#160;&#160;# part 2: starts BLANK<br><br>before = x @ W.T<br>after&#160;&#160;= x @ W.T + (x @ A.T) @ B.T&#160;&#160;# page + note<br><br>torch.allclose(before, after)&#160;&#160;# True: blank note<br>W.numel(), A.numel() + B.numel()</p>
+<div class="stack" style="width:560px">
+<div class="card" style="--i:0"><p class="tag">Output</p><p class="ct-s mono">True<br>802,816 vs 28,672 (3.6%)</p></div>
+<div class="card" style="--i:1"><p class="tag">Why B starts at zero</p><p class="ct-s">At step 0 the chef cooks exactly as before. That’s how the lab gets a free “before” score.</p></div>
+<div class="card" style="--i:2"><p class="tag">Try it</p><p class="ct-s">The notebook’s 🧸 Story time cell runs this, plus the times table and the 16-crayon demo, in a second on CPU.</p></div>
+</div>
+</div>
+<aside>Show the code, not the maths. W is a real-sized page from Qwen2.5-0.5B (896 by 896). A and B are the sticky note with rank 16. B starts at zero, so "after" equals "before": the note is blank until training writes on it. That's exactly why §7 in the notebook can measure the base model's baseline without loading a second copy. Point students to the Story time cell in the notebook to run it themselves.</aside>
+</section>

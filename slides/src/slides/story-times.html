@@ -1,0 +1,24 @@
+<section id="story-times" class="alt">
+<div class="head">
+<p class="eyebrow">How can a tiny note change a whole page?</p>
+<h2>The times-table trick</h2>
+</div>
+<div class="row">
+<div style="width:620px">
+<table class="tbl">
+<tr class="hd"><th style="width:16%">×</th><th style="width:16%">1</th><th style="width:16%">2</th><th style="width:16%">3</th><th style="width:16%">4</th><th style="width:20%">5</th></tr>
+<tr><td>1</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+<tr><td>2</td><td>2</td><td>4</td><td>6</td><td>8</td><td>10</td></tr>
+<tr><td>3</td><td>3</td><td>6</td><td>9</td><td>12</td><td>15</td></tr>
+<tr><td>4</td><td>4</td><td>8</td><td>12</td><td>16</td><td>20</td></tr>
+<tr><td>5</td><td>5</td><td>10</td><td>15</td><td>20</td><td>25</td></tr>
+</table>
+</div>
+<div class="stack grow">
+<p class="lead"><b>25 numbers</b> in the grid, but you only need <b>two lists of 5</b> (the row and column headers) to rebuild every one of them.</p>
+<div class="card hot" style="--i:0"><p class="tag b">LoRA’s sticky note is exactly this</p><p class="ct-s">Two skinny lists of numbers, <b>A</b> and <b>B</b>. Their “times table” <span class="mono">B × A</span> is a whole page of changes. For one page of Chef Qwen’s book: <b>802,816</b> numbers rebuilt from <b>28,672</b> (3.6%).</p></div>
+<div class="card" style="--i:1"><p class="tag">Rank r</p><p class="ct-s">How many pairs of lists you get. Bigger <span class="mono">r</span> means a bigger note that can describe more complicated changes. We use <span class="mono">r = 16</span>.</p></div>
+</div>
+</div>
+<aside>This is the "low-rank" in Low-Rank Adaptation, without the maths. A times table is a rank-1 grid: everything comes from one row list and one column list. LoRA allows r such pairs (here 16), so the note can express richer changes while staying tiny. The 802,816 versus 28,672 numbers are real: one 896 by 896 attention matrix in Qwen2.5-0.5B with r equal to 16. The notebook's story cell prints exactly these numbers.</aside>
+</section>

@@ -483,6 +483,113 @@ tr.band { background: var(--blue-soft); }
 <p class="analogy">Retrain every instinct the chef has, from knife grip to plating. Total transformation, total cost.</p>
 <aside>All weights move. Most powerful, most expensive, highest forgetting risk. Reserve for deep domain shifts with ample data and budget. In the lab's memory table, full fine-tuning of even a 1.5B model doesn't fit a free T4.</aside>
 </section>
+<section id="story-premise" class="accent">
+<div class="head">
+<p class="eyebrow">Story time · LoRA and QLoRA, explained like you’re 10</p>
+<h2>Chef Qwen and the Giant Recipe Book</h2>
+</div>
+<div class="grid2">
+<div class="card" style="--i:0"><p class="tag o">The premise</p><p class="ct">Chef Qwen can cook almost anything, thanks to a <b>Giant Recipe Book</b> with half a billion tiny notes in it. You run the <b>Help Desk Café</b> and need one special dish, every time: a card that says <i>which team · how urgent · a kind reply</i>.</p></div>
+<div class="card" style="--i:1"><p class="tag o">The problem</p><p class="ct">Chef Qwen serves <span class="mono">“Billing and Service Issues!”</span> Your card only has a box called <span class="mono">“Billing”</span>. The chef is clever but doesn’t know <b>your café’s rules</b>. How do you teach them?</p></div>
+</div>
+<div class="card why" style="--i:2"><p class="tag o">Idea 1: rewrite the whole book (full fine-tuning)</p><p class="ct">You’d need a library-sized room, it would take ages, and while rewriting you might rub out recipes the chef already knew. Far too much work to teach <b>one dish</b>.</p></div>
+<aside>Tell it as a story; the room will remember it longer than any formula. Map as you go: the book is the model's weights (about 500 million numbers), the special dish is our triage JSON, rewriting the book is full fine-tuning, and rubbing out old recipes is catastrophic forgetting. Ask: "Would you reprint a famous chef's whole cookbook to teach one dish?" Let them say no, then turn the slide.</aside>
+</section>
+<section id="story-sticky">
+<div class="head">
+<p class="eyebrow">Smart idea #1 · LoRA</p>
+<h2>Don’t rewrite the book. Add sticky notes.</h2>
+</div>
+<p class="analogy">📝 <i>“At Help Desk Café, the answer is always a card with exactly 3 boxes. Write ‘Billing’, never ‘Billing and Service Issues’.”</i></p>
+<div class="grid4">
+<div class="card" style="--i:0"><p class="tag o">Glue the book shut</p><p class="ct-s">The book never changes. <b>In the lab:</b> the base weights are <i>frozen</i>.</p></div>
+<div class="card" style="--i:1"><p class="tag o">Tiny notes</p><p class="ct-s">Quick and cheap to write. <b>In the lab:</b> we train only ~1–2% of the numbers.</p></div>
+<div class="card" style="--i:2"><p class="tag o">Peel off anytime</p><p class="ct-s">Wrong note? Remove it. <b>In the lab:</b> detach the small adapter file to roll back.</p></div>
+<div class="card" style="--i:3"><p class="tag o">Many cafés, one book</p><p class="ct-s">Each café sticks its own notes. <b>In the lab:</b> one base model, many adapters.</p></div>
+</div>
+<p class="rule">The chef forgets nothing, because nobody ever wrote in the book.</p>
+<aside>LoRA in one picture: a glued-shut book plus sticky notes. Hit each card's "in the lab" line so the analogy lands on real concepts: frozen base, about 1 to 2 percent trainable, a small adapter you can detach, one base with many adapters. The natural next question is "how can a tiny note change a whole page?" That's the next slide.</aside>
+</section>
+<section id="story-times" class="alt">
+<div class="head">
+<p class="eyebrow">How can a tiny note change a whole page?</p>
+<h2>The times-table trick</h2>
+</div>
+<div class="row">
+<div style="width:620px">
+<table class="tbl">
+<tr class="hd"><th style="width:16%">×</th><th style="width:16%">1</th><th style="width:16%">2</th><th style="width:16%">3</th><th style="width:16%">4</th><th style="width:20%">5</th></tr>
+<tr><td>1</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+<tr><td>2</td><td>2</td><td>4</td><td>6</td><td>8</td><td>10</td></tr>
+<tr><td>3</td><td>3</td><td>6</td><td>9</td><td>12</td><td>15</td></tr>
+<tr><td>4</td><td>4</td><td>8</td><td>12</td><td>16</td><td>20</td></tr>
+<tr><td>5</td><td>5</td><td>10</td><td>15</td><td>20</td><td>25</td></tr>
+</table>
+</div>
+<div class="stack grow">
+<p class="lead"><b>25 numbers</b> in the grid, but you only need <b>two lists of 5</b> (the row and column headers) to rebuild every one of them.</p>
+<div class="card hot" style="--i:0"><p class="tag b">LoRA’s sticky note is exactly this</p><p class="ct-s">Two skinny lists of numbers, <b>A</b> and <b>B</b>. Their “times table” <span class="mono">B × A</span> is a whole page of changes. For one page of Chef Qwen’s book: <b>802,816</b> numbers rebuilt from <b>28,672</b> (3.6%).</p></div>
+<div class="card" style="--i:1"><p class="tag">Rank r</p><p class="ct-s">How many pairs of lists you get. Bigger <span class="mono">r</span> means a bigger note that can describe more complicated changes. We use <span class="mono">r = 16</span>.</p></div>
+</div>
+</div>
+<aside>This is the "low-rank" in Low-Rank Adaptation, without the maths. A times table is a rank-1 grid: everything comes from one row list and one column list. LoRA allows r such pairs (here 16), so the note can express richer changes while staying tiny. The 802,816 versus 28,672 numbers are real: one 896 by 896 attention matrix in Qwen2.5-0.5B with r equal to 16. The notebook's story cell prints exactly these numbers.</aside>
+</section>
+<section id="story-crayons">
+<div class="head">
+<p class="eyebrow">Smart idea #2 · the Q in QLoRA</p>
+<h2>Your kitchen is tiny: make a pocket edition</h2>
+</div>
+<p class="ct">The Giant Recipe Book barely fits through the door of your café’s kitchen <i>(a free T4 GPU)</i>. So you redraw it: every number written with a <b>fancy pen</b> becomes the closest colour from a <b>box of 16 crayons</b>.</p>
+<div class="stack">
+<p class="tag">Fancy pen · 65,536 shades (16-bit)</p>
+<div style="height:56px;border-radius:12px;background:linear-gradient(90deg,#2B6CB0,#F2A766)"></div>
+<p class="tag">Crayon box · 16 colours (4-bit)</p>
+<div style="display:flex;gap:6px;height:56px">
+<div style="flex:1;border-radius:8px;background:#2B6CB0"></div><div style="flex:1;border-radius:8px;background:#3870AB"></div><div style="flex:1;border-radius:8px;background:#4674A6"></div><div style="flex:1;border-radius:8px;background:#5378A1"></div><div style="flex:1;border-radius:8px;background:#607C9C"></div><div style="flex:1;border-radius:8px;background:#6D8097"></div><div style="flex:1;border-radius:8px;background:#7B8492"></div><div style="flex:1;border-radius:8px;background:#88888D"></div><div style="flex:1;border-radius:8px;background:#958B89"></div><div style="flex:1;border-radius:8px;background:#A28F84"></div><div style="flex:1;border-radius:8px;background:#B0937F"></div><div style="flex:1;border-radius:8px;background:#BD977A"></div><div style="flex:1;border-radius:8px;background:#CA9B75"></div><div style="flex:1;border-radius:8px;background:#D79F70"></div><div style="flex:1;border-radius:8px;background:#E5A36B"></div><div style="flex:1;border-radius:8px;background:#F2A766"></div>
+</div>
+</div>
+<div class="grid3">
+<div class="card" style="--i:0"><p class="tag b">4× smaller</p><p class="ct-s">Chef Qwen’s book: <b>0.99 GB → 0.25 GB</b>. Now it fits, with room to work.</p></div>
+<div class="card" style="--i:1"><p class="tag b">Still readable</p><p class="ct-s">A little less precise, like a smaller photo. NF4 puts more crayons where most numbers are.</p></div>
+<div class="card hot" style="--i:2"><p class="tag b">Notes stay in fancy pen</p><p class="ct-s"><b>QLoRA</b> = pocket-edition book (4-bit, frozen) + sticky notes in full precision.</p></div>
+</div>
+<aside>Quantization for a ten-year-old: fewer crayons, smaller book. 16-bit means 65,536 possible values per number; 4-bit means 16. Each weight snaps to the nearest of the 16 levels. NF4 places those levels where weights cluster (a bell curve), so it loses less than evenly spaced levels would. The key insight of QLoRA: the frozen book can be low precision, because the new learning lives in the sticky notes, which stay high precision.</aside>
+</section>
+<section id="story-code" class="dark">
+<div class="head">
+<p class="eyebrow">The story in a few lines of code</p>
+<h2>A sticky note on one page</h2>
+</div>
+<div class="row">
+<p class="code grow">W = torch.randn(896, 896)&#160;&#160;&#160;&#160;# the page: frozen<br>A = torch.randn(16, 896) * 0.01&#160;&#160;# sticky note, part 1<br>B = torch.zeros(896, 16)&#160;&#160;&#160;&#160;# part 2: starts BLANK<br><br>before = x @ W.T<br>after&#160;&#160;= x @ W.T + (x @ A.T) @ B.T&#160;&#160;# page + note<br><br>torch.allclose(before, after)&#160;&#160;# True: blank note<br>W.numel(), A.numel() + B.numel()</p>
+<div class="stack" style="width:560px">
+<div class="card" style="--i:0"><p class="tag">Output</p><p class="ct-s mono">True<br>802,816 vs 28,672 (3.6%)</p></div>
+<div class="card" style="--i:1"><p class="tag">Why B starts at zero</p><p class="ct-s">At step 0 the chef cooks exactly as before. That’s how the lab gets a free “before” score.</p></div>
+<div class="card" style="--i:2"><p class="tag">Try it</p><p class="ct-s">The notebook’s 🧸 Story time cell runs this, plus the times table and the 16-crayon demo, in a second on CPU.</p></div>
+</div>
+</div>
+<aside>Show the code, not the maths. W is a real-sized page from Qwen2.5-0.5B (896 by 896). A and B are the sticky note with rank 16. B starts at zero, so "after" equals "before": the note is blank until training writes on it. That's exactly why §7 in the notebook can measure the base model's baseline without loading a second copy. Point students to the Story time cell in the notebook to run it themselves.</aside>
+</section>
+<section id="story-map" class="alt">
+<div class="head">
+<p class="eyebrow">From story to lab</p>
+<h2>Every character has a real name</h2>
+</div>
+<table class="tbl-s">
+<tr class="hd"><th style="width:34%">In the story</th><th style="width:44%">In the lab</th><th style="width:22%">Notebook</th></tr>
+<tr><td>Chef Qwen</td><td>Qwen2.5-0.5B-Instruct</td><td>§3</td></tr>
+<tr><td>The Giant Recipe Book</td><td>~500 million weights</td><td>—</td></tr>
+<tr><td>The café’s special dish</td><td>the triage JSON card</td><td>§2–3</td></tr>
+<tr><td>Gluing the book shut</td><td>freezing the base model</td><td>§5</td></tr>
+<tr><td>Pocket edition, 16 crayons</td><td>4-bit NF4 quantization</td><td>§5</td></tr>
+<tr class="band"><td>Sticky notes</td><td>LoRA adapters (A and B)</td><td>§6</td></tr>
+<tr><td>Size of the note</td><td>rank r = 16</td><td>§6</td></tr>
+<tr><td>Practising the dish</td><td>training with SFTTrainer</td><td>§8</td></tr>
+<tr><td>Peeling the notes off</td><td>detaching the adapter</td><td>§10</td></tr>
+</table>
+<p class="rule">QLoRA = a pocket-edition book you never write in + a few sticky notes you do.</p>
+<aside>Close the story by naming every character. From here, the next two slides are the technical versions of LoRA and QLoRA; they should now feel like a recap rather than new material.</aside>
+</section>
 <section id="lora">
 <div class="head">
 <p class="eyebrow">5 · Taxonomy · B · PEFT</p>
@@ -863,7 +970,7 @@ tr.band { background: var(--blue-soft); }
 </section>
 </div></div>
 <div id="progress"></div>
-<nav id="menu" aria-label="Slides"><p class="menu-group">Framing</p><button data-go="0"><span>1</span> Fine-Tuning Large Language Models</button><button data-go="1"><span>2</span> Every concept answers three questions</button><button data-go="2"><span>3</span> Two sessions: decide, then build</button><button data-go="3"><span>4</span> One chef, four very different moves</button><p class="menu-group">History and pretraining</p><button data-go="4"><span>5</span> How we got the base model</button><button data-go="5"><span>6</span> Pretraining is next-token prediction at scale</button><button data-go="6"><span>7</span> Same weights at birth, different habits</button><button data-go="7"><span>8</span> cp1</button><p class="menu-group">Motivation</p><button data-go="8"><span>9</span> Why fine-tuning exists: three reasons</button><button data-go="9"><span>10</span> Three knobs, three different jobs</button><button data-go="10"><span>11</span> From cheapest to most permanent</button><button data-go="11"><span>12</span> Five questions before you fine-tune</button><button data-go="12"><span>13</span> cp2</button><p class="menu-group">The lifecycle</p><button data-go="13"><span>14</span> Training is only one of nine stages</button><button data-go="14"><span>15</span> Define, curate, choose the chef</button><button data-go="15"><span>16</span> Approach, train, evaluate</button><button data-go="16"><span>17</span> Deploy, monitor, iterate</button><button data-go="17"><span>18</span> cp3</button><p class="menu-group">Break</p><button data-go="18"><span>19</span> Break</button><p class="menu-group">Taxonomy</p><button data-go="19"><span>20</span> Two questions sort every technique</button><button data-go="20"><span>21</span> Full fine-tuning</button><button data-go="21"><span>22</span> LoRA: low-rank adaptation</button><button data-go="22"><span>23</span> QLoRA and the adapter family</button><button data-go="23"><span>24</span> Instruction tuning and SFT</button><button data-go="24"><span>25</span> Preference tuning: RLHF and DPO</button><button data-go="25"><span>26</span> cp4</button><p class="menu-group">Needs and risks</p><button data-go="26"><span>27</span> Before you start: three honest checks</button><button data-go="27"><span>28</span> Four ways fine-tuning quietly hurts you</button><button data-go="28"><span>29</span> cp5</button><p class="menu-group">Economics and use cases</p><button data-go="29"><span>30</span> Where the money actually goes</button><button data-go="30"><span>31</span> The go / no-go checklist</button><button data-go="31"><span>32</span> Fine-tune the craft, retrieve the facts</button><p class="menu-group">Hands-on lab</p><button data-go="32"><span>33</span> Build a support-ticket triage assistant</button><button data-go="33"><span>34</span> Triage every ticket, the same way, in a format software can use</button><button data-go="34"><span>35</span> One ticket in, one JSON object out</button><button data-go="35"><span>36</span> Our decision questions, applied</button><button data-go="36"><span>37</span> Turn a model that fails into a reliable specialist</button><button data-go="37"><span>38</span> Decide what “worked” means before training</button><button data-go="38"><span>39</span> Eight steps, one notebook</button><button data-go="39"><span>40</span> Training memory is mostly not the weights</button><button data-go="40"><span>41</span> Every knob, and why it’s set that way</button><button data-go="41"><span>42</span> Same model, same test, after four minutes of training</button><button data-go="42"><span>43</span> Why priority lags, and what to fix next</button><p class="menu-group">Synthesis</p><button data-go="43"><span>44</span> The whole kitchen in five lines</button><button data-go="44"><span>45</span> cp6</button><button data-go="45"><span>46</span> What’s nagging at you?</button></nav>
+<nav id="menu" aria-label="Slides"><p class="menu-group">Framing</p><button data-go="0"><span>1</span> Fine-Tuning Large Language Models</button><button data-go="1"><span>2</span> Every concept answers three questions</button><button data-go="2"><span>3</span> Two sessions: decide, then build</button><button data-go="3"><span>4</span> One chef, four very different moves</button><p class="menu-group">History and pretraining</p><button data-go="4"><span>5</span> How we got the base model</button><button data-go="5"><span>6</span> Pretraining is next-token prediction at scale</button><button data-go="6"><span>7</span> Same weights at birth, different habits</button><button data-go="7"><span>8</span> cp1</button><p class="menu-group">Motivation</p><button data-go="8"><span>9</span> Why fine-tuning exists: three reasons</button><button data-go="9"><span>10</span> Three knobs, three different jobs</button><button data-go="10"><span>11</span> From cheapest to most permanent</button><button data-go="11"><span>12</span> Five questions before you fine-tune</button><button data-go="12"><span>13</span> cp2</button><p class="menu-group">The lifecycle</p><button data-go="13"><span>14</span> Training is only one of nine stages</button><button data-go="14"><span>15</span> Define, curate, choose the chef</button><button data-go="15"><span>16</span> Approach, train, evaluate</button><button data-go="16"><span>17</span> Deploy, monitor, iterate</button><button data-go="17"><span>18</span> cp3</button><p class="menu-group">Break</p><button data-go="18"><span>19</span> Break</button><p class="menu-group">Taxonomy</p><button data-go="19"><span>20</span> Two questions sort every technique</button><button data-go="20"><span>21</span> Full fine-tuning</button><button data-go="21"><span>22</span> Chef Qwen and the Giant Recipe Book</button><button data-go="22"><span>23</span> Don’t rewrite the book. Add sticky notes.</button><button data-go="23"><span>24</span> The times-table trick</button><button data-go="24"><span>25</span> Your kitchen is tiny: make a pocket edition</button><button data-go="25"><span>26</span> A sticky note on one page</button><button data-go="26"><span>27</span> Every character has a real name</button><button data-go="27"><span>28</span> LoRA: low-rank adaptation</button><button data-go="28"><span>29</span> QLoRA and the adapter family</button><button data-go="29"><span>30</span> Instruction tuning and SFT</button><button data-go="30"><span>31</span> Preference tuning: RLHF and DPO</button><button data-go="31"><span>32</span> cp4</button><p class="menu-group">Needs and risks</p><button data-go="32"><span>33</span> Before you start: three honest checks</button><button data-go="33"><span>34</span> Four ways fine-tuning quietly hurts you</button><button data-go="34"><span>35</span> cp5</button><p class="menu-group">Economics and use cases</p><button data-go="35"><span>36</span> Where the money actually goes</button><button data-go="36"><span>37</span> The go / no-go checklist</button><button data-go="37"><span>38</span> Fine-tune the craft, retrieve the facts</button><p class="menu-group">Hands-on lab</p><button data-go="38"><span>39</span> Build a support-ticket triage assistant</button><button data-go="39"><span>40</span> Triage every ticket, the same way, in a format software can use</button><button data-go="40"><span>41</span> One ticket in, one JSON object out</button><button data-go="41"><span>42</span> Our decision questions, applied</button><button data-go="42"><span>43</span> Turn a model that fails into a reliable specialist</button><button data-go="43"><span>44</span> Decide what “worked” means before training</button><button data-go="44"><span>45</span> Eight steps, one notebook</button><button data-go="45"><span>46</span> Training memory is mostly not the weights</button><button data-go="46"><span>47</span> Every knob, and why it’s set that way</button><button data-go="47"><span>48</span> Same model, same test, after four minutes of training</button><button data-go="48"><span>49</span> Why priority lags, and what to fix next</button><p class="menu-group">Synthesis</p><button data-go="49"><span>50</span> The whole kitchen in five lines</button><button data-go="50"><span>51</span> cp6</button><button data-go="51"><span>52</span> What’s nagging at you?</button></nav>
 <div id="notes" aria-live="polite"></div>
 <div id="bar">
   <button id="menuBtn" title="All slides (M)">☰ Slides</button>
